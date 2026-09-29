@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/meta/doctypes', 'dist/meta/doctypes', { recursive: true, errorOnExist: false }); require('fs').mkdirSync('dist/desk', { recursive: true }); require('fs').copyFileSync('src/desk/desk.html', 'dist/desk/desk.html'); require('fs').cpSync('src/modules', 'dist/modules', { recursive: true, errorOnExist: false })\"",
     "start": "node dist/main.js",
-    "start:dev": "tsx watch src/main.ts",
+    "start:dev": "node --watch --require @swc-node/register src/main.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -31,6 +31,8 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^11.2.6",
+    "@swc-node/register": "^1.12.1",
+    "@swc/core": "^1.16.12",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.0",
     "@types/pg": "^8.23.1",
