@@ -3,7 +3,7 @@ import { NamingService } from './naming.service';
 import { DocumentEventsService } from './document-events.service';
 import { DocumentControllerRegistry } from './document-controller.registry';
 import { DocumentService } from './document.service';
-import { TaskDocument } from './controllers/task.document';
+import { TaskDocument } from '../modules/task/task.document';
 
 @Global()
 @Module({

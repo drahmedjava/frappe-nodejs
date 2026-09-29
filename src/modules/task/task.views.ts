@@ -41,4 +41,41 @@ export const TASK_VIEWS: FeatureViewsConfig = {
       style: '.task-summary-block { background: #eff6ff; padding: 12px; border-radius: 6px; font-weight: 500; }',
     },
   ],
+  printFormats: [
+    {
+      name: 'Task Print Format',
+      referenceDoctype: 'Task',
+      isDefault: true,
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .header { border-bottom: 2px solid #333; margin-bottom: 16px; }
+    .field-label { font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; }
+    .field-value { margin-bottom: 12px; font-size: 14px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .status-open { background: #dbeafe; color: #1d4ed8; }
+    .status-completed { background: #dcfce7; color: #16a34a; }
+    .priority-urgent { background: #fee2e2; color: #dc2626; }
+  </style>
+</head>
+<body>
+  <div class="header"><h2>{{title}}</h2><p>Task ID: {{name}}</p></div>
+  <div class="field-label">Status</div>
+  <div class="field-value"><span class="badge status-{{status|lower}}">{{status}}</span></div>
+  <div class="field-label">Priority</div>
+  <div class="field-value"><span class="badge priority-{{priority|lower}}">{{priority}}</span></div>
+  <div class="field-label">Description</div>
+  <div class="field-value">{{description}}</div>
+  <div class="field-label">Assigned To</div>
+  <div class="field-value">{{assigned_to}}</div>
+  <div class="field-label">Progress</div>
+  <div class="field-value">{{progress}}%</div>
+  <div class="field-label">Expected Dates</div>
+  <div class="field-value">{{exp_start_date}} → {{exp_end_date}}</div>
+</body>
+</html>`,
+    },
+  ],
 };

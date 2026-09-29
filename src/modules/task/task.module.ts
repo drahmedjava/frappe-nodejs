@@ -4,7 +4,7 @@ import { FrappeFeatureService } from '../../core/frappe-feature.service';
 import { TaskCustomController } from './task.controller';
 import { TaskEventsService } from './task.events';
 import { TASK_VIEWS } from './task.views';
-import { TaskDocument } from '../../document/controllers/task.document';
+import { TaskDocument } from './task.document';
 
 @Module({
   controllers: [TaskCustomController],

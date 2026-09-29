@@ -44,6 +44,12 @@ export interface FeatureViewsConfig {
   kanbanBoards?: KanbanBoardConfig[];
   customViews?: CustomViewConfig[];
   htmlBlocks?: CustomHtmlBlockConfig[];
+  printFormats?: Array<{
+    name: string;
+    referenceDoctype: string;
+    html: string;
+    isDefault?: boolean;
+  }>;
 }
 
 export interface FrappeFeatureOptions {

@@ -74,6 +74,12 @@
       "label": "Task Items",
       "fieldtype": "Table",
       "options": "TaskItem"
+    },
+    {
+      "fieldname": "overview_html",
+      "label": "Task Overview",
+      "fieldtype": "HTML",
+      "options": "<div class=\"task-overview-block\"><h4>📋 Task Overview</h4><p>Use this section to embed rich context, instructions, or status dashboards directly in the form view.</p><ul><li>Track progress using the Progress field above</li><li>Assign team members using the Assigned To field</li><li>Set expected dates for scheduling</li></ul></div>"
     }
   ],
   "permissions": [
