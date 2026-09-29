@@ -78,6 +78,15 @@ export class BaseDocument {
     this.data.idx = val;
   }
 
+  get amended_from(): string | undefined {
+    return this.data?.amended_from;
+  }
+  set amended_from(val: string | undefined) {
+    if (!this.data) this.data = {};
+    this.data.amended_from = val;
+  }
+
+  protected context: DocumentContext;
   protected db: DatabaseService;
   protected naming: NamingService;
   protected validator: DocValidatorService;
@@ -95,6 +104,7 @@ export class BaseDocument {
     this.data = { ...initialData };
     this.isNew = isNew;
 
+    this.context = context;
     this.db = context.db;
     this.naming = context.naming;
     this.validator = context.validator;
@@ -254,9 +264,56 @@ export class BaseDocument {
     const tableName = `tab${this.doctype}`;
     const { mainRow, childRowsByField } = this.separateChildTables();
 
+    // 1. Version tracking diff on existing document before transaction
+    let versionDiff: any = null;
+    let verName: string | null = null;
+    if (this.doctype !== 'Version' && this.registry.has('Version')) {
+      const hasTable = await this.db.hasTable('tabVersion');
+      if (hasTable) {
+        const existingRow = await this.db.table(tableName).where({ name: this.data.name }).first();
+        if (existingRow) {
+          const changed: Array<[string, any, any]> = [];
+          const ignored = new Set(['creation', 'modified', 'modified_by', 'idx', 'docstatus']);
+          for (const field of this.meta.fields) {
+            if (field.fieldtype === 'Table' || field.fieldtype === 'Password' || ignored.has(field.fieldname)) {
+              continue;
+            }
+            const oldVal = existingRow[field.fieldname];
+            const newVal = mainRow[field.fieldname];
+            const oldNorm = oldVal === undefined || oldVal === null ? null : oldVal;
+            const newNorm = newVal === undefined || newVal === null ? null : newVal;
+            if (oldNorm !== newNorm) {
+              changed.push([field.fieldname, oldNorm, newNorm]);
+            }
+          }
+          if (changed.length > 0) {
+            versionDiff = { changed };
+            const versionMeta = this.registry.get('Version');
+            verName = await this.naming.generateName(versionMeta, {});
+          }
+        }
+      }
+    }
+
     await this.db.transaction(async (trx) => {
       // Update main row
       await trx(tableName).where({ name: this.data.name }).update(mainRow);
+
+      // Record version if diff exists
+      if (versionDiff && verName) {
+        await trx('tabVersion').insert({
+          name: verName,
+          ref_doctype: this.doctype,
+          docname: this.data.name,
+          data: JSON.stringify(versionDiff),
+          owner: user,
+          modified_by: user,
+          creation: now,
+          modified: now,
+          docstatus: 0,
+          idx: 0,
+        });
+      }
 
       // Sync child tables: delete old child records and re-insert updated list
       for (const [parentfield, rows] of Object.entries(childRowsByField)) {
@@ -402,6 +459,91 @@ export class BaseDocument {
 
     await this.after_delete();
     await this.events.emitAsync('after_delete', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_delete' });
+  }
+
+  /**
+   * Amends a cancelled submittable document.
+   * Clones doc, generates amendment name (e.g. DOC-00001-1), sets amended_from, resets docstatus to 0.
+   */
+  async amend(user = 'Administrator', save = true): Promise<this> {
+    if (!this.meta.isSubmittable) {
+      throw new Error(`DocType "${this.doctype}" is not submittable`);
+    }
+
+    if (this.data.docstatus !== 2) {
+      throw new Error(`Only cancelled documents can be amended. Current docstatus: ${this.data.docstatus}`);
+    }
+
+    // Determine new amendment name
+    let newName: string;
+    if (this.data.amended_from) {
+      const match = this.data.name.match(/^(.*)-(\d+)$/);
+      if (match) {
+        const base = match[1];
+        const count = parseInt(match[2], 10) + 1;
+        newName = `${base}-${count}`;
+      } else {
+        newName = `${this.data.name}-1`;
+      }
+    } else {
+      newName = `${this.data.name}-1`;
+    }
+
+    // Clone data
+    const amendedData: Record<string, any> = { ...this.data };
+    delete amendedData.creation;
+    delete amendedData.modified;
+    delete amendedData.owner;
+    delete amendedData.modified_by;
+
+    amendedData.name = newName;
+    amendedData.amended_from = this.data.name;
+    amendedData.docstatus = 0; // Reset to Draft
+
+    // Clone child table rows
+    for (const field of this.meta.fields) {
+      if (field.fieldtype === 'Table' && Array.isArray(amendedData[field.fieldname])) {
+        amendedData[field.fieldname] = amendedData[field.fieldname].map((row: any) => {
+          const clonedRow = { ...row };
+          delete clonedRow.name;
+          delete clonedRow.parent;
+          delete clonedRow.creation;
+          delete clonedRow.modified;
+          delete clonedRow.owner;
+          delete clonedRow.modified_by;
+          clonedRow.docstatus = 0;
+          return clonedRow;
+        });
+      }
+    }
+
+    const ControllerClass = this.constructor as any;
+    const newDoc = new ControllerClass(this.meta, amendedData, this.context, true);
+
+    if (save) {
+      await newDoc.insert(user);
+    }
+
+    return newDoc;
+  }
+
+  /**
+   * Fetches change history versions for this document.
+   */
+  async getVersions(): Promise<any[]> {
+    if (!this.registry.has('Version')) return [];
+    const hasTable = await this.db.hasTable('tabVersion');
+    if (!hasTable) return [];
+
+    const rows = await this.db
+      .table('tabVersion')
+      .where({ ref_doctype: this.doctype, docname: this.data.name })
+      .orderBy('creation', 'desc');
+
+    return rows.map((r: any) => ({
+      ...r,
+      data: typeof r.data === 'string' ? JSON.parse(r.data) : r.data,
+    }));
   }
 
   /**

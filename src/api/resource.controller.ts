@@ -219,4 +219,38 @@ export class ResourceController {
     const updated = await this.workflowService.applyWorkflow(doc, action, user);
     return { data: updated.asJson() };
   }
+
+  @Post(':doctype/:name/amend')
+  async amendDoc(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'amend', user);
+
+    const doc = await this.docService.getDoc(doctype, name);
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
+
+    const amended = await doc.amend(user.user);
+    const sanitized = this.userPermissionService.filterPermittedFields(meta, amended.asJson(), user);
+    return { data: sanitized };
+  }
+
+  @Get(':doctype/:name/versions')
+  async getVersions(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'read', user);
+
+    const doc = await this.docService.getDoc(doctype, name);
+    const versions = await doc.getVersions();
+    return { data: versions };
+  }
 }

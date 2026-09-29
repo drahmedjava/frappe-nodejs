@@ -4,4 +4,4 @@ export interface AuthUser {
   isGuest: boolean;
 }
 
-export type PermissionAction = 'read' | 'write' | 'create' | 'delete' | 'submit' | 'cancel';
+export type PermissionAction = 'read' | 'write' | 'create' | 'delete' | 'submit' | 'cancel' | 'amend';

@@ -70,6 +70,11 @@ export class SchemaSyncService {
         table.index(['parent', 'parenttype', 'parentfield']);
       }
 
+      // Submittable documents track amendment lineage
+      if (docType.isSubmittable) {
+        table.string('amended_from', 140).nullable();
+      }
+
       // Add DocType fields
       for (const field of docType.fields) {
         this.addColumn(table, field);
@@ -80,6 +85,13 @@ export class SchemaSyncService {
   private async alterTable(knex: Knex, docType: DocType, tableName: string): Promise<void> {
     const existingCols = await knex(tableName).columnInfo();
     const existingColNames = new Set(Object.keys(existingCols));
+
+    if (docType.isSubmittable && !existingColNames.has('amended_from')) {
+      await knex.schema.alterTable(tableName, (table) => {
+        table.string('amended_from', 140).nullable();
+      });
+      existingColNames.add('amended_from');
+    }
 
     // Determine missing columns
     const missingFields: DocField[] = [];

@@ -1,0 +1,38 @@
+{
+  "name": "Version",
+  "module": "Core",
+  "namingRule": "series",
+  "autoname": "VER-.#####",
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "docname",
+      "label": "Document Name",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "data",
+      "label": "Change Data Diff",
+      "fieldtype": "Text",
+      "reqd": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}
