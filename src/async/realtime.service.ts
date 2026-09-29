@@ -1,15 +1,19 @@
-import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown, OnModuleInit, Optional } from '@nestjs/common';
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { RealtimeMessageOptions } from './types';
 import { DocumentEventsService } from '../document/document-events.service';
+import { SiteContextService } from '../tenant/site-context.service';
 
 @Injectable()
 export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
   private readonly logger = new Logger(RealtimeService.name);
   private io: SocketIOServer | null = null;
 
-  constructor(private readonly docEvents: DocumentEventsService) {}
+  constructor(
+    private readonly docEvents: DocumentEventsService,
+    @Optional() private readonly siteContext?: SiteContextService,
+  ) {}
 
   onModuleInit() {
     // Automatically forward document events to real-time clients
@@ -52,6 +56,10 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
       socket.on('subscribe_user', (user: string) => {
         socket.join(`user:${user}`);
       });
+
+      socket.on('subscribe_site', (site: string) => {
+        socket.join(`site:${site}`);
+      });
     });
 
     this.logger.log('Socket.IO real-time server attached');
@@ -70,18 +78,25 @@ export class RealtimeService implements OnModuleInit, OnApplicationShutdown {
       return;
     }
 
+    const site = this.siteContext?.getCurrentSite();
+    const eventPayload = site && typeof message === 'object' && message !== null ? { ...message, site } : message;
+
+    if (site) {
+      this.io.to(`site:${site}`).emit(event, eventPayload);
+    }
+
     if (options.room) {
-      this.io.to(options.room).emit(event, message);
+      this.io.to(options.room).emit(event, eventPayload);
     } else if (options.user) {
-      this.io.to(`user:${options.user}`).emit(event, message);
+      this.io.to(`user:${options.user}`).emit(event, eventPayload);
     } else if (options.doctype && options.docname) {
-      this.io.to(`doc:${options.doctype}:${options.docname}`).emit(event, message);
-      this.io.to(`doctype:${options.doctype}`).emit(event, message);
+      this.io.to(`doc:${options.doctype}:${options.docname}`).emit(event, eventPayload);
+      this.io.to(`doctype:${options.doctype}`).emit(event, eventPayload);
     } else if (options.doctype) {
-      this.io.to(`doctype:${options.doctype}`).emit(event, message);
+      this.io.to(`doctype:${options.doctype}`).emit(event, eventPayload);
     } else {
       // Global broadcast
-      this.io.emit(event, message);
+      this.io.emit(event, eventPayload);
     }
   }
 

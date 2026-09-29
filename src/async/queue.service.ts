@@ -1,8 +1,10 @@
-import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown, Optional } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { JobHandler, JobPayload } from './types';
 import { Queue, Worker } from 'bullmq';
 import * as crypto from 'crypto';
+import { SiteContextService } from '../tenant/site-context.service';
+import { SiteResolverService } from '../tenant/site-resolver.service';
 
 @Injectable()
 export class QueueService implements OnApplicationShutdown {
@@ -13,7 +15,11 @@ export class QueueService implements OnApplicationShutdown {
   private inMemoryQueue: JobPayload[] = [];
   private isProcessingInMemory = false;
 
-  constructor(private readonly redisService: RedisService) {
+  constructor(
+    private readonly redisService: RedisService,
+    @Optional() private readonly siteContext?: SiteContextService,
+    @Optional() private readonly siteResolver?: SiteResolverService,
+  ) {
     const redisClient = this.redisService.getClient();
 
     if (redisClient) {
@@ -30,7 +36,7 @@ export class QueueService implements OnApplicationShutdown {
           async (job) => {
             const handler = this.handlers.get(job.name);
             if (handler) {
-              return await handler(job.data);
+              return await this.executeJob(handler, job.data);
             } else {
               this.logger.warn(`No handler registered for background job: ${job.name}`);
             }
@@ -57,8 +63,14 @@ export class QueueService implements OnApplicationShutdown {
   async enqueue(jobName: string, data: any, options?: { delay?: number }): Promise<string> {
     const jobId = crypto.randomUUID();
 
+    const site = this.siteContext?.getCurrentSite();
+    let payload = data;
+    if (site && typeof data === 'object' && data !== null && !data.__site) {
+      payload = { ...data, __site: site };
+    }
+
     if (this.bullQueue) {
-      const bullJob = await this.bullQueue.add(jobName, data, {
+      const bullJob = await this.bullQueue.add(jobName, payload, {
         jobId,
         delay: options?.delay,
       });
@@ -69,7 +81,7 @@ export class QueueService implements OnApplicationShutdown {
     const job: JobPayload = {
       id: jobId,
       name: jobName,
-      data,
+      data: payload,
       timestamp: Date.now(),
     };
 
@@ -87,6 +99,15 @@ export class QueueService implements OnApplicationShutdown {
     return jobId;
   }
 
+  private async executeJob(handler: JobHandler, jobData: any): Promise<any> {
+    const site = jobData?.__site;
+    if (site && this.siteResolver?.siteExists(site) && this.siteContext) {
+      const context = this.siteResolver.resolveSiteContext(site);
+      return this.siteContext.run(context, () => handler(jobData));
+    }
+    return handler(jobData);
+  }
+
   private async processInMemory(): Promise<void> {
     if (this.isProcessingInMemory) return;
     this.isProcessingInMemory = true;
@@ -98,7 +119,7 @@ export class QueueService implements OnApplicationShutdown {
       const handler = this.handlers.get(job.name);
       if (handler) {
         try {
-          await handler(job.data);
+          await this.executeJob(handler, job.data);
         } catch (err: any) {
           this.logger.error(`Job [${job.name}] failed: ${err.message}`, err.stack);
         }

@@ -102,7 +102,7 @@ export class NamingService implements OnModuleInit {
    * Atomically gets the next number for a series prefix.
    */
   async getNextSeries(prefix: string, digits: number): Promise<string> {
-    const knex = this.db.getKnex();
+    await this.ensureSeriesTable();
 
     return this.db.transaction(async (trx) => {
       const row = await trx('tabSeries').where({ name: prefix }).forUpdate?.().first() ||

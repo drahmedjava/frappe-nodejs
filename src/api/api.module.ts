@@ -8,6 +8,8 @@ import { DocumentService } from '../document/document.service';
 import { PeripheralModule } from '../peripheral/peripheral.module';
 import { PrintFormatService } from '../peripheral/print-format.service';
 import { DataImportExportService } from '../peripheral/data-import-export.service';
+import { SiteManagerService } from '../tenant/site-manager.service';
+import { SiteContextService } from '../tenant/site-context.service';
 
 @Module({
   imports: [PeripheralModule],
@@ -23,6 +25,8 @@ export class ApiModule implements OnModuleInit {
     private readonly docService: DocumentService,
     private readonly printService: PrintFormatService,
     private readonly importExportService: DataImportExportService,
+    private readonly siteManager: SiteManagerService,
+    private readonly siteContext: SiteContextService,
   ) {}
 
   onModuleInit() {
@@ -107,6 +111,45 @@ export class ApiModule implements OnModuleInit {
         if (!params.doctype || !params.name) throw new Error('doctype and name are required');
         const doc = await this.docService.getDoc(params.doctype, params.name);
         return this.printService.render(doc, params.format);
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.tenant.get_current_site',
+      () => this.siteContext.getCurrentSite() || 'default',
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'frappe.tenant.list_sites',
+      () => this.siteManager.listSites(),
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.tenant.create_site',
+      async (params) => {
+        if (!params.sitename) throw new Error('sitename is required');
+        const ctx = await this.siteManager.createSite({
+          sitename: params.sitename,
+          dbType: params.db_type,
+          dbName: params.db_name,
+          dbHost: params.db_host,
+          dbPort: params.db_port,
+          dbUser: params.db_user,
+          dbPassword: params.db_password,
+        });
+        return { site: ctx.site, siteDir: ctx.siteDir };
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.tenant.migrate_site',
+      async (params) => {
+        if (!params.sitename) throw new Error('sitename is required');
+        return this.siteManager.migrateSite(params.sitename);
       },
       { isPublic: false },
     );

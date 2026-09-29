@@ -1,8 +1,9 @@
-import { Injectable, OnApplicationShutdown, Logger } from '@nestjs/common';
+import { Injectable, OnApplicationShutdown, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import knex, { Knex } from 'knex';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SiteContextService } from '../tenant/site-context.service';
 
 export const KNEX_CONNECTION = Symbol('KNEX_CONNECTION');
 
@@ -11,7 +12,10 @@ export class DatabaseService implements OnApplicationShutdown {
   private readonly logger = new Logger(DatabaseService.name);
   private knexInstance: Knex;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Optional() private readonly siteContext?: SiteContextService,
+  ) {
     const dbConfig = this.configService.get('database');
     const client = dbConfig?.client || 'sqlite3';
 
@@ -50,15 +54,19 @@ export class DatabaseService implements OnApplicationShutdown {
   }
 
   getKnex(): Knex {
+    const tenantKnex = this.siteContext?.getCurrentKnex();
+    if (tenantKnex) {
+      return tenantKnex;
+    }
     return this.knexInstance;
   }
 
   table(tableName: string): Knex.QueryBuilder {
-    return this.knexInstance(tableName);
+    return this.getKnex()(tableName);
   }
 
   async sql<T = any>(query: string, bindings?: any[]): Promise<T[]> {
-    const result = await this.knexInstance.raw(query, bindings || []);
+    const result = await this.getKnex().raw(query, bindings || []);
     // Normalize return across drivers: SQLite/Postgres vs MySQL
     if (Array.isArray(result)) {
       return result;
@@ -70,16 +78,16 @@ export class DatabaseService implements OnApplicationShutdown {
   }
 
   async hasTable(tableName: string): Promise<boolean> {
-    return this.knexInstance.schema.hasTable(tableName);
+    return this.getKnex().schema.hasTable(tableName);
   }
 
   async transaction<T>(callback: (trx: Knex.Transaction) => Promise<T>): Promise<T> {
-    return this.knexInstance.transaction(callback);
+    return this.getKnex().transaction(callback);
   }
 
   async ping(): Promise<boolean> {
     try {
-      await this.knexInstance.raw('SELECT 1');
+      await this.getKnex().raw('SELECT 1');
       return true;
     } catch (err) {
       this.logger.error('Database ping failed:', err);
