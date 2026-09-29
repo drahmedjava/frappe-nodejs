@@ -1,0 +1,86 @@
+{
+  "name": "CustomView",
+  "module": "Desk",
+  "namingRule": "series",
+  "autoname": "VIEW-.#####",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "View Title",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true
+    },
+    {
+      "fieldname": "view_type",
+      "label": "View Type",
+      "fieldtype": "Select",
+      "options": ["List", "Kanban", "Calendar", "Report", "Card"],
+      "default": "List",
+      "reqd": true
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters",
+      "fieldtype": "Text",
+      "description": "JSON criteria for saved filter"
+    },
+    {
+      "fieldname": "columns",
+      "label": "Columns",
+      "fieldtype": "Text",
+      "description": "JSON array of selected column fieldnames"
+    },
+    {
+      "fieldname": "sort_by",
+      "label": "Sort By",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "sort_order",
+      "label": "Sort Order",
+      "fieldtype": "Select",
+      "options": ["asc", "desc"],
+      "default": "desc"
+    },
+    {
+      "fieldname": "settings",
+      "label": "View Settings",
+      "fieldtype": "Text",
+      "description": "JSON object with view-specific configurations"
+    },
+    {
+      "fieldname": "is_default",
+      "label": "Default View",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "is_private",
+      "label": "Private",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "create": true
+    }
+  ]
+}

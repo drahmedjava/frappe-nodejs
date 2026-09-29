@@ -37,6 +37,16 @@
       "inFilter": true
     },
     {
+      "fieldname": "exp_start_date",
+      "label": "Expected Start Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "exp_end_date",
+      "label": "Expected End Date",
+      "fieldtype": "Date"
+    },
+    {
       "fieldname": "due_date",
       "label": "Due Date",
       "fieldtype": "Date"

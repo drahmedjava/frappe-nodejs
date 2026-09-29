@@ -12,12 +12,13 @@ import { PrintFormatService } from '../peripheral/print-format.service';
 import { DataImportExportService } from '../peripheral/data-import-export.service';
 import { SiteManagerService } from '../tenant/site-manager.service';
 import { SiteContextService } from '../tenant/site-context.service';
+import { ViewService } from './view.service';
 
 @Module({
   imports: [PeripheralModule, DiscoveryModule],
   controllers: [ResourceController, MethodController],
-  providers: [MethodRegistryService],
-  exports: [MethodRegistryService],
+  providers: [MethodRegistryService, ViewService],
+  exports: [MethodRegistryService, ViewService],
 })
 export class ApiModule implements OnModuleInit {
   constructor(
@@ -31,6 +32,7 @@ export class ApiModule implements OnModuleInit {
     private readonly siteContext: SiteContextService,
     private readonly discoveryService: DiscoveryService,
     private readonly docEvents: DocumentEventsService,
+    private readonly viewService: ViewService,
   ) {}
 
   onModuleInit() {
@@ -221,6 +223,57 @@ export class ApiModule implements OnModuleInit {
         return this.siteManager.migrateSite(params.sitename);
       },
       { isPublic: false },
+    );
+
+    // Multi-View Support Methods
+    this.methodRegistry.register(
+      'frappe.views.get_views',
+      async (params) => {
+        if (!params.doctype) throw new Error('doctype parameter is required');
+        return this.viewService.getViews(params.doctype);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'frappe.views.create_kanban_board',
+      async (params) => this.viewService.createKanbanBoard(params),
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.views.get_kanban_board_data',
+      async (params) => {
+        if (!params.board_name) throw new Error('board_name parameter is required');
+        return this.viewService.getKanbanBoardData(params.board_name, params.filters);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'frappe.views.update_card_column',
+      async (params) => {
+        if (!params.doctype || !params.name || !params.field_name) {
+          throw new Error('doctype, name, and field_name parameters are required');
+        }
+        return this.viewService.updateCardColumn(params.doctype, params.name, params.field_name, params.new_value);
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.views.create_custom_view',
+      async (params) => this.viewService.createCustomView(params),
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.views.get_calendar_data',
+      async (params) => {
+        if (!params.doctype) throw new Error('doctype parameter is required');
+        return this.viewService.getCalendarData(params.doctype, params);
+      },
+      { isPublic: true },
     );
   }
 }

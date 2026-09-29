@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Frappe JS — Desk</title>
+  <title>Frappe JS — Desk Multi-View</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
     :root {
@@ -15,6 +15,7 @@
       --text: #1e293b;
       --text-muted: #64748b;
       --accent: #2563eb;
+      --accent-light: #eff6ff;
       --success: #16a34a;
       --warning: #eab308;
       --danger: #dc2626;
@@ -34,26 +35,33 @@
 
     /* Main view */
     .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .navbar { height: 60px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-    .breadcrumbs { font-size: 0.95rem; font-weight: 600; display: flex; gap: 8px; align-items: center; }
-    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .navbar { height: 60px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; gap: 16px; }
+    .breadcrumbs { font-size: 0.95rem; font-weight: 600; display: flex; gap: 8px; align-items: center; min-width: 140px; }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
     .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--success); font-weight: 500; }
     .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+
+    /* View Switcher */
+    .view-switcher { display: flex; background: #f1f5f9; padding: 3px; border-radius: 6px; gap: 2px; }
+    .view-btn { border: none; background: transparent; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; cursor: pointer; color: var(--text-muted); transition: all 0.15s; }
+    .view-btn:hover { color: var(--text); }
+    .view-btn.active { background: #ffffff; color: var(--accent); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
 
     .content { flex: 1; overflow-y: auto; padding: 24px; }
 
     /* Button styles */
-    .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.15s; }
+    .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { background: #f8fafc; }
     .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
     .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-secondary { background: #f1f5f9; color: var(--text); }
 
     /* List View */
     .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .table-toolbar { padding: 16px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
-    .search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; width: 280px; font-size: 0.85rem; }
+    .table-toolbar { padding: 16px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; gap: 12px; flex-wrap: wrap; }
+    .search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; width: 260px; font-size: 0.85rem; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
     th { padding: 12px 20px; background: #f8fafc; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
     td { padding: 14px 20px; border-bottom: 1px solid var(--border); }
@@ -61,7 +69,7 @@
 
     /* Form View */
     .form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto; }
-    .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px; }
     .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { grid-column: span 2; }
@@ -69,14 +77,46 @@
     .form-control { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; width: 100%; }
     textarea.form-control { resize: vertical; min-height: 80px; }
     
-    /* Submittable Pill */
     .docstatus-pill { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
     .docstatus-0 { background: #e2e8f0; color: #475569; }
     .docstatus-1 { background: #dcfce7; color: #166534; }
     .docstatus-2 { background: #fee2e2; color: #991b1b; }
-
-    /* Child Table */
     .child-table-wrapper { margin-top: 16px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+
+    /* Kanban View */
+    .kanban-board-wrapper { display: flex; flex-direction: column; height: 100%; }
+    .kanban-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .kanban-container { display: flex; gap: 16px; overflow-x: auto; flex: 1; padding-bottom: 16px; }
+    .kanban-column { width: 300px; min-width: 300px; background: #f1f5f9; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; max-height: calc(100vh - 180px); }
+    .kanban-column-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; font-size: 0.9rem; color: var(--text); }
+    .kanban-count { background: #e2e8f0; color: var(--text-muted); font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+    .kanban-cards { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
+    .kanban-card { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: grab; transition: transform 0.15s, box-shadow 0.15s; }
+    .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .kanban-card.dragging { opacity: 0.5; }
+    .kanban-card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+    .kanban-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
+
+    /* Calendar View */
+    .calendar-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 14px; }
+    .calendar-header-day { background: #f8fafc; padding: 10px; font-weight: 600; font-size: 0.8rem; text-align: center; color: var(--text-muted); }
+    .calendar-day-cell { background: #ffffff; min-height: 100px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .calendar-day-num { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+    .calendar-event { background: var(--accent-light); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid var(--accent); }
+    .calendar-event:hover { background: #dbeafe; }
+
+    /* Card / Gallery View */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+    .doc-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.15s; display: flex; flex-direction: column; gap: 10px; }
+    .doc-card:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+    .doc-card-title { font-weight: 600; font-size: 1rem; color: var(--text); }
+    .doc-card-body { font-size: 0.85rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; }
+    .doc-card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-card { background: #ffffff; border-radius: 8px; padding: 24px; width: 440px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 16px; }
   </style>
 </head>
 <body>
@@ -93,45 +133,55 @@
   <main class="main">
     <header class="navbar">
       <div class="breadcrumbs" id="breadcrumbs">Desk</div>
+      
+      <!-- View Switcher Tabs -->
+      <div class="view-switcher" id="viewSwitcher">
+        <button class="view-btn active" id="btnListView" onclick="switchView('List')">📋 List</button>
+        <button class="view-btn" id="btnKanbanView" onclick="switchView('Kanban')">📌 Kanban</button>
+        <button class="view-btn" id="btnCalendarView" onclick="switchView('Calendar')">📅 Calendar</button>
+        <button class="view-btn" id="btnCardView" onclick="switchView('Card')">🖼️ Card</button>
+        <button class="view-btn" id="btnReportView" onclick="switchView('Report')">📊 Report Builder</button>
+      </div>
+
       <div class="nav-actions">
         <div class="live-indicator"><div class="live-dot"></div> Live Sync</div>
-        <button class="btn" onclick="openReportView()">📊 Report Builder</button>
       </div>
     </header>
 
     <div class="content" id="mainContent">
-      <!-- Dynamic Content Rendered Here -->
+      <!-- Dynamic View Rendered Here -->
     </div>
   </main>
 
   <script>
     let currentDocType = 'Task';
     let currentDocName = null;
+    let currentView = 'List';
     let docTypeMeta = null;
+    let availableViewsInfo = null;
+    let activeKanbanBoard = null;
     let socket = null;
 
-    // Initialize Socket.IO connection
+    // Socket.IO live sync
     try {
       socket = io();
       socket.on('connect', () => {
-        console.log('Connected to Frappe live sync');
         if (currentDocType) socket.emit('subscribe_doctype', currentDocType);
       });
       socket.on('doc_update', (msg) => {
         if (msg.doctype === currentDocType && !currentDocName) {
-          loadListView(currentDocType);
+          reloadCurrentView();
         }
       });
       socket.on('doc_delete', (msg) => {
         if (msg.doctype === currentDocType && !currentDocName) {
-          loadListView(currentDocType);
+          reloadCurrentView();
         }
       });
     } catch (e) {
-      console.warn('Socket.IO not available:', e);
+      console.warn('Socket.IO:', e);
     }
 
-    // Load available DocTypes on start
     async function init() {
       const res = await fetch('/api/method/frappe.get_doctypes');
       const json = await res.json();
@@ -148,31 +198,73 @@
         listEl.appendChild(li);
       });
 
-      loadListView(currentDocType);
+      selectDocType(currentDocType);
     }
 
-    function selectDocType(doctype) {
+    async function selectDocType(doctype) {
       currentDocType = doctype;
       currentDocName = null;
+      activeKanbanBoard = null;
+
       document.querySelectorAll('.doctype-item').forEach(el => {
         el.classList.toggle('active', el.innerText.includes(doctype));
       });
+
       if (socket) socket.emit('subscribe_doctype', currentDocType);
-      loadListView(doctype);
+
+      // Load view info for this doctype
+      const viewRes = await fetch(`/api/method/frappe.views.get_views?doctype=${doctype}`);
+      const viewJson = await viewRes.json();
+      availableViewsInfo = viewJson.message || {};
+
+      // Load default list view
+      switchView('List');
     }
 
-    // Load List View
-    async function loadListView(doctype, search = '') {
+    function switchView(viewName) {
+      currentView = viewName;
       currentDocName = null;
+
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`btn${viewName}View`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.getElementById('viewSwitcher').style.display = 'flex';
+
+      switch (viewName) {
+        case 'List':
+          loadListView(currentDocType);
+          break;
+        case 'Kanban':
+          loadKanbanView(currentDocType);
+          break;
+        case 'Calendar':
+          loadCalendarView(currentDocType);
+          break;
+        case 'Card':
+          loadCardView(currentDocType);
+          break;
+        case 'Report':
+          loadReportView(currentDocType);
+          break;
+      }
+    }
+
+    function reloadCurrentView() {
+      switchView(currentView);
+    }
+
+    // -------------------------------------------------------------
+    // 1. List View
+    // -------------------------------------------------------------
+    async function loadListView(doctype, search = '') {
       document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> List`;
 
-      // Fetch Meta
       const metaRes = await fetch(`/api/method/frappe.get_meta?doctype=${doctype}`);
       const metaJson = await metaRes.json();
       docTypeMeta = metaJson.message;
 
-      // Fetch Data
-      const dataRes = await fetch(`/api/resource/${doctype}?limit=20`);
+      const dataRes = await fetch(`/api/resource/${doctype}?limit=50`);
       const dataJson = await dataRes.json();
       let records = dataJson.data || [];
 
@@ -180,7 +272,6 @@
         records = records.filter(r => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()));
       }
 
-      // Pick columns marked inList
       let columns = docTypeMeta.fields.filter(f => f.inList && f.fieldtype !== 'Table').map(f => f.fieldname);
       if (columns.length === 0) columns = ['name', 'status', 'creation'];
       if (!columns.includes('name')) columns.unshift('name');
@@ -212,24 +303,322 @@
       `;
     }
 
-    // Load Form View
+    // -------------------------------------------------------------
+    // 2. Kanban Board View (Multiple Boards per DocType)
+    // -------------------------------------------------------------
+    async function loadKanbanView(doctype, selectedBoardName = null) {
+      document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> Kanban`;
+
+      const viewRes = await fetch(`/api/method/frappe.views.get_views?doctype=${doctype}`);
+      const viewJson = await viewRes.json();
+      availableViewsInfo = viewJson.message || {};
+
+      const boards = availableViewsInfo.kanban_boards || [];
+
+      // If no board exists and groupable fields exist, automatically create default board
+      if (boards.length === 0) {
+        if (availableViewsInfo.groupable_fields.length > 0) {
+          const defaultField = availableViewsInfo.groupable_fields[0].fieldname;
+          await fetch('/api/method/frappe.views.create_kanban_board', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              kanban_board_name: `${doctype} by ${defaultField}`,
+              reference_doctype: doctype,
+              field_name: defaultField,
+            })
+          });
+          return loadKanbanView(doctype);
+        } else {
+          document.getElementById('mainContent').innerHTML = `
+            <div class="table-card" style="padding:40px;text-align:center;">
+              <h3>No Select fields found on ${doctype}</h3>
+              <p style="color:var(--text-muted);margin-top:8px;">Kanban view requires at least one Select field to organize columns.</p>
+            </div>
+          `;
+          return;
+        }
+      }
+
+      const activeBoard = selectedBoardName || (boards[0] ? boards[0].name : null);
+      activeKanbanBoard = activeBoard;
+
+      const boardDataRes = await fetch(`/api/method/frappe.views.get_kanban_board_data?board_name=${encodeURIComponent(activeBoard)}`);
+      const boardDataJson = await boardDataRes.json();
+      const boardData = boardDataJson.message || {};
+
+      const columns = boardData.columns || [];
+      const groupedCards = boardData.grouped_cards || {};
+      const fieldName = boardData.board.field_name;
+
+      const container = document.getElementById('mainContent');
+      container.innerHTML = `
+        <div class="kanban-board-wrapper">
+          <div class="kanban-header-bar">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <label style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Board:</label>
+              <select class="form-control" style="width:220px;" onchange="loadKanbanView('${doctype}', this.value)">
+                ${boards.map(b => `<option value="${b.name}" ${b.name === activeBoard ? 'selected' : ''}>${b.name}</option>`).join('')}
+              </select>
+              <button class="btn btn-secondary" onclick="openNewBoardModal('${doctype}')">+ New Board</button>
+            </div>
+            <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+          </div>
+
+          <div class="kanban-container">
+            ${columns.map(col => `
+              <div class="kanban-column" ondragover="event.preventDefault()" ondrop="dropCard(event, '${doctype}', '${fieldName}', '${col}')">
+                <div class="kanban-column-header">
+                  <span>${col}</span>
+                  <span class="kanban-count">${(groupedCards[col] || []).length}</span>
+                </div>
+                <div class="kanban-cards" id="col_${col.replace(/[^a-zA-Z0-9]/g, '_')}">
+                  ${(groupedCards[col] || []).map(card => `
+                    <div class="kanban-card" draggable="true" ondragstart="dragCard(event, '${card.name}')" onclick="loadFormView('${doctype}', '${card.name}')">
+                      <div class="kanban-card-title">${card.title || card.name}</div>
+                      <div style="font-size:0.8rem;color:var(--text-muted);">${card.name}</div>
+                      <div class="kanban-card-meta">
+                        <span>${card.priority || card.status || ''}</span>
+                        <span>${card.owner || ''}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    let draggedDocName = null;
+    function dragCard(event, docName) {
+      draggedDocName = docName;
+      event.target.classList.add('dragging');
+    }
+
+    async function dropCard(event, doctype, fieldName, newColValue) {
+      event.preventDefault();
+      if (!draggedDocName) return;
+
+      const docName = draggedDocName;
+      draggedDocName = null;
+
+      await fetch('/api/method/frappe.views.update_card_column', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctype,
+          name: docName,
+          field_name: fieldName,
+          new_value: newColValue,
+        })
+      });
+
+      loadKanbanView(doctype, activeKanbanBoard);
+    }
+
+    function openNewBoardModal(doctype) {
+      const groupFields = availableViewsInfo.groupable_fields || [];
+      const modal = document.createElement('div');
+      modal.className = 'modal-backdrop';
+      modal.id = 'newBoardModal';
+      modal.innerHTML = `
+        <div class="modal-card">
+          <h3 style="font-size:1.1rem;">Create New Kanban Board</h3>
+          <div class="form-group">
+            <label class="form-label">Board Name</label>
+            <input type="text" class="form-control" id="newBoardName" placeholder="e.g. Priority Matrix">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Group By Field</label>
+            <select class="form-control" id="newBoardField">
+              ${groupFields.map(f => `<option value="${f.fieldname}">${f.label} (${f.fieldname})</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+            <button class="btn" onclick="document.getElementById('newBoardModal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitCreateBoard('${doctype}')">Create Board</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    async function submitCreateBoard(doctype) {
+      const name = document.getElementById('newBoardName').value.trim();
+      const field = document.getElementById('newBoardField').value;
+      if (!name) return alert('Board name is required');
+
+      await fetch('/api/method/frappe.views.create_kanban_board', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kanban_board_name: name,
+          reference_doctype: doctype,
+          field_name: field,
+        })
+      });
+
+      document.getElementById('newBoardModal').remove();
+      loadKanbanView(doctype, name);
+    }
+
+    // -------------------------------------------------------------
+    // 3. Calendar View
+    // -------------------------------------------------------------
+    async function loadCalendarView(doctype) {
+      document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> Calendar`;
+
+      const calRes = await fetch(`/api/method/frappe.views.get_calendar_data?doctype=${doctype}`);
+      const calJson = await calRes.json();
+      const calData = calJson.message || { events: [] };
+      const events = calData.events || [];
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+      // Group events by day of month
+      const eventsByDay = {};
+      events.forEach(ev => {
+        if (ev.start) {
+          const d = new Date(ev.start);
+          if (d.getFullYear() === year && d.getMonth() === month) {
+            const dayNum = d.getDate();
+            if (!eventsByDay[dayNum]) eventsByDay[dayNum] = [];
+            eventsByDay[dayNum].push(ev);
+          }
+        }
+      });
+
+      const dayCells = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayEvents = eventsByDay[day] || [];
+        dayCells.push(`
+          <div class="calendar-day-cell">
+            <span class="calendar-day-num">${day}</span>
+            ${dayEvents.map(ev => `
+              <div class="calendar-event" onclick="loadFormView('${doctype}', '${ev.id}')" title="${ev.title}">
+                ${ev.title}
+              </div>
+            `).join('')}
+          </div>
+        `);
+      }
+
+      const container = document.getElementById('mainContent');
+      container.innerHTML = `
+        <div class="calendar-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>📅 ${monthName} — ${doctype} Calendar</h3>
+            <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="calendar-header-day">Sun</div>
+            <div class="calendar-header-day">Mon</div>
+            <div class="calendar-header-day">Tue</div>
+            <div class="calendar-header-day">Wed</div>
+            <div class="calendar-header-day">Thu</div>
+            <div class="calendar-header-day">Fri</div>
+            <div class="calendar-header-day">Sat</div>
+            ${dayCells.join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // 4. Card / Gallery View
+    // -------------------------------------------------------------
+    async function loadCardView(doctype) {
+      document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> Cards`;
+
+      const dataRes = await fetch(`/api/resource/${doctype}?limit=50`);
+      const dataJson = await dataRes.json();
+      const records = dataJson.data || [];
+
+      const container = document.getElementById('mainContent');
+      container.innerHTML = `
+        <div style="margin-bottom:16px;display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+        </div>
+        <div class="cards-grid">
+          ${records.map(row => `
+            <div class="doc-card" onclick="loadFormView('${doctype}', '${row.name}')">
+              <div class="doc-card-title">${row.title || row.name}</div>
+              <div class="doc-card-body">
+                <span><strong>ID:</strong> ${row.name}</span>
+                ${row.status ? `<span><strong>Status:</strong> ${row.status}</span>` : ''}
+                ${row.priority ? `<span><strong>Priority:</strong> ${row.priority}</span>` : ''}
+                ${row.total_amount ? `<span><strong>Amount:</strong> $${row.total_amount}</span>` : ''}
+              </div>
+              <div class="doc-card-footer">
+                <span>${row.owner || 'Admin'}</span>
+                <span>${row.creation ? new Date(row.creation).toLocaleDateString() : ''}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // 5. Report View
+    // -------------------------------------------------------------
+    async function loadReportView(doctype) {
+      document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> Report`;
+
+      const res = await fetch(`/api/resource/${doctype}?limit=100`);
+      const json = await res.json();
+      const records = json.data || [];
+
+      const metaRes = await fetch(`/api/method/frappe.get_meta?doctype=${doctype}`);
+      const metaJson = await metaRes.json();
+      const fields = metaJson.message.fields.filter(f => f.fieldtype !== 'Table').map(f => f.fieldname);
+
+      const container = document.getElementById('mainContent');
+      container.innerHTML = `
+        <div class="table-card">
+          <div class="table-toolbar">
+            <h3>📊 ${doctype} Full Report (${records.length} records)</h3>
+            <a href="/api/resource/${doctype}/export?format=csv" target="_blank" class="btn btn-secondary">Export CSV</a>
+          </div>
+          <table>
+            <thead>
+              <tr>${fields.map(f => `<th>${f}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${records.map(r => `<tr>${fields.map(f => `<td>${r[f] !== null && r[f] !== undefined ? r[f] : ''}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // 6. Form View
+    // -------------------------------------------------------------
     async function loadFormView(doctype, name) {
       currentDocName = name;
       const isNew = !name;
 
+      document.getElementById('viewSwitcher').style.display = 'none';
+
       document.getElementById('breadcrumbs').innerHTML = `
-        <a href="#" onclick="loadListView('${doctype}')" style="color:var(--accent);text-decoration:none;">${doctype}</a>
+        <a href="#" onclick="switchView('List')" style="color:var(--accent);text-decoration:none;">${doctype}</a>
         <span>/</span> ${isNew ? 'New' : name}
       `;
 
-      // Fetch Meta
       if (!docTypeMeta || docTypeMeta.name !== doctype) {
         const metaRes = await fetch(`/api/method/frappe.get_meta?doctype=${doctype}`);
         const metaJson = await metaRes.json();
         docTypeMeta = metaJson.message;
       }
 
-      // Fetch Doc Data if existing
       let docData = {};
       let transitions = [];
 
@@ -238,7 +627,6 @@
         const docJson = await docRes.json();
         docData = docJson.data || {};
 
-        // Fetch workflow transitions
         const transRes = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}/transitions`);
         if (transRes.ok) {
           const transJson = await transRes.json();
@@ -247,7 +635,6 @@
       }
 
       const container = document.getElementById('mainContent');
-
       const regularFields = docTypeMeta.fields.filter(f => f.fieldtype !== 'Table');
       const tableFields = docTypeMeta.fields.filter(f => f.fieldtype === 'Table');
 
@@ -313,7 +700,7 @@
       }
 
       if (field.fieldtype === 'Select') {
-        const opts = Array.isArray(field.options) ? field.options : (field.options ? field.options.split('\\n') : []);
+        const opts = Array.isArray(field.options) ? field.options : (field.options ? field.options.split('\n') : []);
         return `
           <div class="form-group">
             <label class="form-label">${field.label} ${field.reqd ? '*' : ''}</label>
@@ -435,33 +822,6 @@
       } else {
         alert('Failed to amend document');
       }
-    }
-
-    // Report View
-    async function openReportView() {
-      const res = await fetch(`/api/resource/${currentDocType}?limit=100`);
-      const json = await res.json();
-      const records = json.data || [];
-
-      const fields = docTypeMeta.fields.filter(f => f.fieldtype !== 'Table').map(f => f.fieldname);
-      const container = document.getElementById('mainContent');
-
-      container.innerHTML = `
-        <div class="table-card">
-          <div class="table-toolbar">
-            <h3>📊 ${currentDocType} Report (${records.length} records)</h3>
-            <button class="btn" onclick="loadListView('${currentDocType}')">Back to List</button>
-          </div>
-          <table>
-            <thead>
-              <tr>${fields.map(f => `<th>${f}</th>`).join('')}</tr>
-            </thead>
-            <tbody>
-              ${records.map(r => `<tr>${fields.map(f => `<td>${r[f] !== null && r[f] !== undefined ? r[f] : ''}</td>`).join('')}</tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
     }
 
     window.onload = init;

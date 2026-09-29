@@ -11,6 +11,7 @@ export { BaseCustomController } from './api/base-custom.controller';
 export { Whitelist, WhitelistOptions } from './api/decorators/whitelist.decorator';
 export { MethodRegistryService, MethodHandler, MethodOptions } from './api/method-registry.service';
 export { ServerScriptService } from './lowcode/server-script.service';
+export { ViewService, CreateKanbanOptions, CreateCustomViewOptions, CalendarOptions } from './api/view.service';
 
 // Meta & Schema Exports
 export { DocTypeRegistryService } from './meta/doctype-registry.service';

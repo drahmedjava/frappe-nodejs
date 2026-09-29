@@ -1,0 +1,68 @@
+{
+  "name": "KanbanBoard",
+  "module": "Desk",
+  "namingRule": "field",
+  "autoname": "kanban_board_name",
+  "fields": [
+    {
+      "fieldname": "kanban_board_name",
+      "label": "Kanban Board Name",
+      "fieldtype": "Data",
+      "reqd": true,
+      "unique": true
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true
+    },
+    {
+      "fieldname": "field_name",
+      "label": "Column Field",
+      "fieldtype": "Data",
+      "reqd": true,
+      "description": "Select field used to organize columns"
+    },
+    {
+      "fieldname": "columns",
+      "label": "Columns",
+      "fieldtype": "Text",
+      "description": "JSON array of column names"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters",
+      "fieldtype": "Text",
+      "description": "Default JSON filters applied to this board"
+    },
+    {
+      "fieldname": "private",
+      "label": "Private",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "show_labels",
+      "label": "Show Labels",
+      "fieldtype": "Check",
+      "default": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "create": true
+    }
+  ]
+}
