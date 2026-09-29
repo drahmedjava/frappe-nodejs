@@ -1,0 +1,48 @@
+{
+  "name": "ClientScript",
+  "module": "Core",
+  "namingRule": "series",
+  "autoname": "CLIENT-SCRIPT-.#####",
+  "fields": [
+    {
+      "fieldname": "dt",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true
+    },
+    {
+      "fieldname": "view",
+      "label": "View",
+      "fieldtype": "Select",
+      "options": ["Form", "List"],
+      "default": "Form",
+      "reqd": true
+    },
+    {
+      "fieldname": "script",
+      "label": "Script",
+      "fieldtype": "Code",
+      "reqd": true
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

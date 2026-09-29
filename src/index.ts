@@ -3,12 +3,14 @@ export { BaseDocument, DocumentContext } from './document/base-document';
 export { DocController, DocumentControllerRegistry } from './document/document-controller.registry';
 export { DocumentService } from './document/document.service';
 export { DocumentEventsService } from './document/document-events.service';
+export { OnDocEvent, DocEventHookEntry } from './document/decorators/on-doc-event.decorator';
 export { NamingService } from './document/naming.service';
 
 // Custom Business Controller & API Exports
 export { BaseCustomController } from './api/base-custom.controller';
 export { Whitelist, WhitelistOptions } from './api/decorators/whitelist.decorator';
 export { MethodRegistryService, MethodHandler, MethodOptions } from './api/method-registry.service';
+export { ServerScriptService } from './lowcode/server-script.service';
 
 // Meta & Schema Exports
 export { DocTypeRegistryService } from './meta/doctype-registry.service';

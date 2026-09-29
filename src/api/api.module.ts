@@ -6,6 +6,7 @@ import { MethodRegistryService } from './method-registry.service';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { SchemaSyncService } from '../meta/schema-sync.service';
 import { DocumentService } from '../document/document.service';
+import { DocumentEventsService } from '../document/document-events.service';
 import { PeripheralModule } from '../peripheral/peripheral.module';
 import { PrintFormatService } from '../peripheral/print-format.service';
 import { DataImportExportService } from '../peripheral/data-import-export.service';
@@ -29,16 +30,18 @@ export class ApiModule implements OnModuleInit {
     private readonly siteManager: SiteManagerService,
     private readonly siteContext: SiteContextService,
     private readonly discoveryService: DiscoveryService,
+    private readonly docEvents: DocumentEventsService,
   ) {}
 
   onModuleInit() {
-    // 1. Auto-discover all @Whitelist() decorated methods across providers & controllers
+    // 1. Auto-discover all @Whitelist() and @OnDocEvent() decorated methods across providers & controllers
     try {
       const controllers = this.discoveryService.getControllers();
       const providers = this.discoveryService.getProviders();
       for (const wrapper of [...controllers, ...providers]) {
         if (wrapper.instance) {
           this.methodRegistry.registerInstance(wrapper.instance);
+          this.docEvents.registerInstance(wrapper.instance);
         }
       }
     } catch {
@@ -141,6 +144,34 @@ export class ApiModule implements OnModuleInit {
         );
       },
       { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.client.get_client_scripts',
+      async (params) => {
+        const dt = params.dt || params.doctype;
+        if (!dt) throw new Error('dt (DocType) parameter is required');
+        const view = params.view || 'Form';
+        const hasTable = await this.docService['db'].hasTable('tabClientScript');
+        if (!hasTable) return { scripts: [] };
+
+        const rows = await this.docService['db']
+          .table('tabClientScript')
+          .where({ dt, enabled: 1 })
+          .andWhere((q: any) => {
+            q.where({ view }).orWhereNull('view');
+          });
+
+        return {
+          scripts: rows.map((r: any) => ({
+            name: r.name,
+            dt: r.dt,
+            view: r.view,
+            script: r.script,
+          })),
+        };
+      },
+      { isPublic: true },
     );
 
     this.methodRegistry.register(

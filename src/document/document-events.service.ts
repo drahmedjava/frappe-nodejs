@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter } from 'events';
 import { DocumentEventPayload } from './types';
+import { ON_DOC_EVENT_METADATA, DocEventHookEntry } from './decorators/on-doc-event.decorator';
 
 @Injectable()
 export class DocumentEventsService {
@@ -27,5 +28,24 @@ export class DocumentEventsService {
 
   off(event: string, listener: (payload: DocumentEventPayload) => Promise<void> | void): void {
     this.emitter.off(event, listener);
+  }
+
+  /**
+   * Scans an object instance (service or listener) for @OnDocEvent() decorated methods
+   * and registers each hook bound to the instance.
+   */
+  registerInstance(instance: any): void {
+    if (!instance || typeof instance !== 'object') return;
+    const constructor = instance.constructor;
+    const entries: DocEventHookEntry[] = Reflect.getMetadata(ON_DOC_EVENT_METADATA, constructor) || [];
+
+    for (const entry of entries) {
+      const bound = entry.handler.bind(instance);
+      if (entry.doctype === '*' || !entry.doctype) {
+        this.on(`doc:${entry.event}`, bound);
+      } else {
+        this.on(`${entry.doctype}:${entry.event}`, bound);
+      }
+    }
   }
 }
