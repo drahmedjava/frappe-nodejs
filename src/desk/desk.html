@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frappe JS — Desk</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    :root {
+      --primary: #171717;
+      --primary-hover: #333333;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --success: #16a34a;
+      --warning: #eab308;
+      --danger: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar { width: 240px; background: var(--card-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .brand { padding: 18px 20px; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+    .brand span { color: var(--accent); }
+    .doctype-list { list-style: none; padding: 12px; overflow-y: auto; flex: 1; }
+    .doctype-item { padding: 10px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; transition: background 0.15s; }
+    .doctype-item:hover, .doctype-item.active { background: #f1f5f9; font-weight: 600; color: var(--accent); }
+    .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: var(--text-muted); }
+
+    /* Main view */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .navbar { height: 60px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .breadcrumbs { font-size: 0.95rem; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--success); font-weight: 500; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* Button styles */
+    .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.15s; }
+    .btn:hover { background: #f8fafc; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    /* List View */
+    .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .table-toolbar { padding: 16px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
+    .search-input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; width: 280px; font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    th { padding: 12px 20px; background: #f8fafc; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: #f8fafc; cursor: pointer; }
+
+    /* Form View */
+    .form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 900px; margin: 0 auto; }
+    .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: span 2; }
+    .form-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    .form-control { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; width: 100%; }
+    textarea.form-control { resize: vertical; min-height: 80px; }
+    
+    /* Submittable Pill */
+    .docstatus-pill { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .docstatus-0 { background: #e2e8f0; color: #475569; }
+    .docstatus-1 { background: #dcfce7; color: #166534; }
+    .docstatus-2 { background: #fee2e2; color: #991b1b; }
+
+    /* Child Table */
+    .child-table-wrapper { margin-top: 16px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">⚡ Frappe <span>NodeJS</span></div>
+    <ul class="doctype-list" id="doctypeList">
+      <li class="doctype-item">Loading DocTypes...</li>
+    </ul>
+  </aside>
+
+  <!-- Main Container -->
+  <main class="main">
+    <header class="navbar">
+      <div class="breadcrumbs" id="breadcrumbs">Desk</div>
+      <div class="nav-actions">
+        <div class="live-indicator"><div class="live-dot"></div> Live Sync</div>
+        <button class="btn" onclick="openReportView()">📊 Report Builder</button>
+      </div>
+    </header>
+
+    <div class="content" id="mainContent">
+      <!-- Dynamic Content Rendered Here -->
+    </div>
+  </main>
+
+  <script>
+    let currentDocType = 'Task';
+    let currentDocName = null;
+    let docTypeMeta = null;
+    let socket = null;
+
+    // Initialize Socket.IO connection
+    try {
+      socket = io();
+      socket.on('connect', () => {
+        console.log('Connected to Frappe live sync');
+        if (currentDocType) socket.emit('subscribe_doctype', currentDocType);
+      });
+      socket.on('doc_update', (msg) => {
+        if (msg.doctype === currentDocType && !currentDocName) {
+          loadListView(currentDocType);
+        }
+      });
+      socket.on('doc_delete', (msg) => {
+        if (msg.doctype === currentDocType && !currentDocName) {
+          loadListView(currentDocType);
+        }
+      });
+    } catch (e) {
+      console.warn('Socket.IO not available:', e);
+    }
+
+    // Load available DocTypes on start
+    async function init() {
+      const res = await fetch('/api/method/frappe.get_doctypes');
+      const json = await res.json();
+      const doctypes = json.message || [];
+
+      const listEl = document.getElementById('doctypeList');
+      listEl.innerHTML = '';
+
+      doctypes.forEach(dt => {
+        const li = document.createElement('li');
+        li.className = `doctype-item ${dt.name === currentDocType ? 'active' : ''}`;
+        li.innerHTML = `<span>${dt.name}</span> <span class="status-badge">${dt.module || 'Core'}</span>`;
+        li.onclick = () => selectDocType(dt.name);
+        listEl.appendChild(li);
+      });
+
+      loadListView(currentDocType);
+    }
+
+    function selectDocType(doctype) {
+      currentDocType = doctype;
+      currentDocName = null;
+      document.querySelectorAll('.doctype-item').forEach(el => {
+        el.classList.toggle('active', el.innerText.includes(doctype));
+      });
+      if (socket) socket.emit('subscribe_doctype', currentDocType);
+      loadListView(doctype);
+    }
+
+    // Load List View
+    async function loadListView(doctype, search = '') {
+      currentDocName = null;
+      document.getElementById('breadcrumbs').innerHTML = `${doctype} <span>/</span> List`;
+
+      // Fetch Meta
+      const metaRes = await fetch(`/api/method/frappe.get_meta?doctype=${doctype}`);
+      const metaJson = await metaRes.json();
+      docTypeMeta = metaJson.message;
+
+      // Fetch Data
+      const dataRes = await fetch(`/api/resource/${doctype}?limit=20`);
+      const dataJson = await dataRes.json();
+      let records = dataJson.data || [];
+
+      if (search) {
+        records = records.filter(r => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()));
+      }
+
+      // Pick columns marked inList
+      let columns = docTypeMeta.fields.filter(f => f.inList && f.fieldtype !== 'Table').map(f => f.fieldname);
+      if (columns.length === 0) columns = ['name', 'status', 'creation'];
+      if (!columns.includes('name')) columns.unshift('name');
+
+      const container = document.getElementById('mainContent');
+      container.innerHTML = `
+        <div class="table-card">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" placeholder="Search ${doctype}..." oninput="loadListView('${doctype}', this.value)" value="${search}">
+            <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+          </div>
+          <table>
+            <thead>
+              <tr>${columns.map(c => `<th>${c.toUpperCase()}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${records.length === 0 ? `<tr><td colspan="${columns.length}" style="text-align:center;color:#94a3b8;padding:40px;">No records found</td></tr>` : ''}
+              ${records.map(row => `
+                <tr onclick="loadFormView('${doctype}', '${row.name}')">
+                  ${columns.map(c => `<td>${row[c] !== null && row[c] !== undefined ? row[c] : '-'}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Load Form View
+    async function loadFormView(doctype, name) {
+      currentDocName = name;
+      const isNew = !name;
+
+      document.getElementById('breadcrumbs').innerHTML = `
+        <a href="#" onclick="loadListView('${doctype}')" style="color:var(--accent);text-decoration:none;">${doctype}</a>
+        <span>/</span> ${isNew ? 'New' : name}
+      `;
+
+      // Fetch Meta
+      if (!docTypeMeta || docTypeMeta.name !== doctype) {
+        const metaRes = await fetch(`/api/method/frappe.get_meta?doctype=${doctype}`);
+        const metaJson = await metaRes.json();
+        docTypeMeta = metaJson.message;
+      }
+
+      // Fetch Doc Data if existing
+      let docData = {};
+      let transitions = [];
+
+      if (!isNew) {
+        const docRes = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}`);
+        const docJson = await docRes.json();
+        docData = docJson.data || {};
+
+        // Fetch workflow transitions
+        const transRes = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}/transitions`);
+        if (transRes.ok) {
+          const transJson = await transRes.json();
+          transitions = transJson.data || [];
+        }
+      }
+
+      const container = document.getElementById('mainContent');
+
+      const regularFields = docTypeMeta.fields.filter(f => f.fieldtype !== 'Table');
+      const tableFields = docTypeMeta.fields.filter(f => f.fieldtype === 'Table');
+
+      container.innerHTML = `
+        <div class="form-card">
+          <div class="form-header">
+            <div>
+              <h2 style="font-size:1.2rem;">${isNew ? `New ${doctype}` : name}</h2>
+              ${!isNew ? `<span class="docstatus-pill docstatus-${docData.docstatus || 0}">${docData.docstatus === 1 ? 'Submitted' : docData.docstatus === 2 ? 'Cancelled' : 'Draft'}</span>` : ''}
+            </div>
+            <div style="display:flex;gap:8px;">
+              ${transitions.map(t => `<button class="btn btn-primary" onclick="applyWorkflowAction('${doctype}', '${name}', '${t.action}')">${t.action}</button>`).join('')}
+              ${docTypeMeta.isSubmittable && docData.docstatus === 0 && !isNew ? `<button class="btn btn-success" onclick="submitDoc('${doctype}', '${name}')">Submit</button>` : ''}
+              ${docTypeMeta.isSubmittable && docData.docstatus === 1 ? `<button class="btn btn-danger" onclick="cancelDoc('${doctype}', '${name}')">Cancel</button>` : ''}
+              <button class="btn btn-primary" onclick="saveDoc('${doctype}', '${name}')">Save</button>
+            </div>
+          </div>
+
+          <form id="docForm" class="form-grid">
+            ${regularFields.map(f => renderFieldInput(f, docData[f.fieldname])).join('')}
+
+            ${tableFields.map(tf => `
+              <div class="form-group full">
+                <label class="form-label">${tf.label}</label>
+                <div class="child-table-wrapper">
+                  <table id="table_${tf.fieldname}">
+                    <thead>
+                      <tr><th>Item</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="tbody_${tf.fieldname}">
+                      ${(docData[tf.fieldname] || []).map((row, idx) => `
+                        <tr>
+                          <td><input class="form-control" type="text" value="${row.item_name || row.role || ''}" name="${tf.fieldname}_${idx}"></td>
+                          <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">Delete</button></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                  <div style="padding:10px;">
+                    <button type="button" class="btn" onclick="addChildTableRow('${tf.fieldname}')">+ Add Row</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </form>
+        </div>
+      `;
+    }
+
+    function renderFieldInput(field, value) {
+      const val = value !== undefined && value !== null ? value : (field.default || '');
+      const isFull = field.fieldtype === 'Text' || field.fieldtype === 'Code';
+
+      if (field.fieldtype === 'Check') {
+        return `
+          <div class="form-group ${isFull ? 'full' : ''}">
+            <label class="form-label">${field.label}</label>
+            <input type="checkbox" id="${field.fieldname}" ${val == 1 ? 'checked' : ''}>
+          </div>
+        `;
+      }
+
+      if (field.fieldtype === 'Select') {
+        const opts = Array.isArray(field.options) ? field.options : (field.options ? field.options.split('\\n') : []);
+        return `
+          <div class="form-group">
+            <label class="form-label">${field.label} ${field.reqd ? '*' : ''}</label>
+            <select class="form-control" id="${field.fieldname}">
+              ${opts.map(o => `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      }
+
+      if (field.fieldtype === 'Text' || field.fieldtype === 'Code') {
+        return `
+          <div class="form-group full">
+            <label class="form-label">${field.label}</label>
+            <textarea class="form-control" id="${field.fieldname}">${val}</textarea>
+          </div>
+        `;
+      }
+
+      const inputType = ['Int', 'Float', 'Currency', 'Percent'].includes(field.fieldtype) ? 'number' :
+                        field.fieldtype === 'Date' ? 'date' : 'text';
+
+      return `
+        <div class="form-group">
+          <label class="form-label">${field.label} ${field.reqd ? '*' : ''}</label>
+          <input type="${inputType}" class="form-control" id="${field.fieldname}" value="${val}" ${field.readOnly ? 'readonly' : ''}>
+        </div>
+      `;
+    }
+
+    function addChildTableRow(fieldname) {
+      const tbody = document.getElementById(`tbody_${fieldname}`);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="form-control" type="text" placeholder="Value"></td>
+        <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    async function saveDoc(doctype, name) {
+      const payload = {};
+      docTypeMeta.fields.forEach(f => {
+        if (f.fieldtype === 'Table') {
+          const tbody = document.getElementById(`tbody_${f.fieldname}`);
+          if (tbody) {
+            const inputs = tbody.querySelectorAll('input');
+            payload[f.fieldname] = Array.from(inputs).map(inp => ({ item_name: inp.value, role: inp.value }));
+          }
+        } else if (f.fieldtype === 'Check') {
+          const el = document.getElementById(f.fieldname);
+          if (el) payload[f.fieldname] = el.checked ? 1 : 0;
+        } else {
+          const el = document.getElementById(f.fieldname);
+          if (el && el.value !== '') payload[f.fieldname] = el.value;
+        }
+      });
+
+      const url = name ? `/api/resource/${doctype}/${encodeURIComponent(name)}` : `/api/resource/${doctype}`;
+      const method = name ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        loadFormView(doctype, json.data.name);
+      } else {
+        const err = await res.json();
+        alert('Save Failed: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    async function applyWorkflowAction(doctype, name, action) {
+      const res = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}/workflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      if (res.ok) {
+        loadFormView(doctype, name);
+      } else {
+        const err = await res.json();
+        alert('Workflow Action Failed: ' + err.message);
+      }
+    }
+
+    async function submitDoc(doctype, name) {
+      const res = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docstatus: 1 })
+      });
+      if (res.ok) loadFormView(doctype, name);
+      else alert('Submit Failed');
+    }
+
+    async function cancelDoc(doctype, name) {
+      const res = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ docstatus: 2 })
+      });
+      if (res.ok) loadFormView(doctype, name);
+      else alert('Cancel Failed');
+    }
+
+    // Report View
+    async function openReportView() {
+      const res = await fetch(`/api/resource/${currentDocType}?limit=100`);
+      const json = await res.json();
+      const records = json.data || [];
+
+      const fields = docTypeMeta.fields.filter(f => f.fieldtype !== 'Table').map(f => f.fieldname);
+      const container = document.getElementById('mainContent');
+
+      container.innerHTML = `
+        <div class="table-card">
+          <div class="table-toolbar">
+            <h3>📊 ${currentDocType} Report (${records.length} records)</h3>
+            <button class="btn" onclick="loadListView('${currentDocType}')">Back to List</button>
+          </div>
+          <table>
+            <thead>
+              <tr>${fields.map(f => `<th>${f}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${records.map(r => `<tr>${fields.map(f => `<td>${r[f] !== null && r[f] !== undefined ? r[f] : ''}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

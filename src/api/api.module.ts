@@ -53,6 +53,17 @@ export class ApiModule implements OnModuleInit {
     );
 
     this.methodRegistry.register(
+      'frappe.get_doctypes',
+      () => {
+        return this.metaRegistry
+          .getAll()
+          .filter((d) => !d.isChildTable)
+          .map((d) => ({ name: d.name, module: d.module, titleField: d.titleField }));
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
       'frappe.migrate',
       async () => {
         await this.syncService.syncAll();

@@ -5,7 +5,7 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/meta/doctypes', 'dist/meta/doctypes', { recursive: true, errorOnExist: false })\"",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/meta/doctypes', 'dist/meta/doctypes', { recursive: true, errorOnExist: false }); require('fs').mkdirSync('dist/desk', { recursive: true }); require('fs').copyFileSync('src/desk/desk.html', 'dist/desk/desk.html')\"",
     "start": "node dist/main.js",
     "start:dev": "tsx watch src/main.ts",
     "test": "vitest run",
@@ -18,6 +18,7 @@
     "@nestjs/platform-express": "^11.0.0",
     "bullmq": "^6.3.9",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
     "ioredis": "^5.5.0",
     "knex": "^3.1.0",
     "mysql2": "^3.24.4",
