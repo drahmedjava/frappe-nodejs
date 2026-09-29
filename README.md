@@ -65,6 +65,7 @@ A full-stack, Frappe-inspired Node.js application framework built on **NestJS** 
 git clone <repo>
 cd frappe-nodejs
 pnpm install
+cp .env.example .env
 ```
 
 ### Running
