@@ -1,0 +1,57 @@
+{
+  "name": "NotificationRule",
+  "module": "Core",
+  "namingRule": "series",
+  "autoname": "NOTIF-.#####",
+  "fields": [
+    {
+      "fieldname": "channel",
+      "label": "Channel",
+      "fieldtype": "Select",
+      "options": ["Realtime", "Queue"],
+      "default": "Realtime",
+      "reqd": true
+    },
+    {
+      "fieldname": "document_type",
+      "label": "Document Type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true
+    },
+    {
+      "fieldname": "event",
+      "label": "Event",
+      "fieldtype": "Select",
+      "options": ["after_save", "after_delete"],
+      "default": "after_save",
+      "reqd": true
+    },
+    {
+      "fieldname": "condition",
+      "label": "Condition (JS expression)",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "message",
+      "label": "Message",
+      "fieldtype": "Text",
+      "reqd": true
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

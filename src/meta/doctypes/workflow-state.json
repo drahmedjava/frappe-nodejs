@@ -1,0 +1,24 @@
+{
+  "name": "WorkflowState",
+  "module": "Core",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "state",
+      "label": "State",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "doc_status",
+      "label": "Doc Status",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "allow_edit",
+      "label": "Allow Edit Role",
+      "fieldtype": "Data"
+    }
+  ]
+}

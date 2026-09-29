@@ -13,11 +13,19 @@ export class DocumentEventsService {
     this.emitter.emit(`doc:${event}`, payload);
   }
 
-  on(event: string, listener: (payload: DocumentEventPayload) => void): void {
+  async emitAsync(event: string, payload: DocumentEventPayload): Promise<void> {
+    const specific = this.emitter.listeners(`${payload.doctype}:${event}`);
+    const generic = this.emitter.listeners(`doc:${event}`);
+    for (const listener of [...specific, ...generic]) {
+      await listener(payload);
+    }
+  }
+
+  on(event: string, listener: (payload: DocumentEventPayload) => Promise<void> | void): void {
     this.emitter.on(event, listener);
   }
 
-  off(event: string, listener: (payload: DocumentEventPayload) => void): void {
+  off(event: string, listener: (payload: DocumentEventPayload) => Promise<void> | void): void {
     this.emitter.off(event, listener);
   }
 }

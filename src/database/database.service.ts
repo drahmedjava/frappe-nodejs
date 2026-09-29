@@ -40,10 +40,10 @@ export class DatabaseService implements OnApplicationShutdown {
       client,
       connection,
       useNullAsDefault: client === 'sqlite3',
-      pool: {
-        min: 1,
-        max: 10,
-      },
+      pool:
+        client === 'sqlite3' && connection.filename === ':memory:'
+          ? { min: 1, max: 1 }
+          : { min: 1, max: 10 },
     });
 
     this.logger.log(`Initialized database connection using [${client}]`);

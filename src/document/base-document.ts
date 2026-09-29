@@ -171,13 +171,13 @@ export class BaseDocument {
 
     // 4. Lifecycle hooks
     await this.before_insert();
-    this.events.emit('before_insert', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_insert' });
+    await this.events.emitAsync('before_insert', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_insert' });
 
     await this.validate();
-    this.events.emit('validate', { doctype: this.doctype, name: this.data.name, doc: this, event: 'validate' });
+    await this.events.emitAsync('validate', { doctype: this.doctype, name: this.data.name, doc: this, event: 'validate' });
 
     await this.before_save();
-    this.events.emit('before_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_save' });
+    await this.events.emitAsync('before_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_save' });
 
     // 5. Database transaction
     const tableName = `tab${this.doctype}`;
@@ -215,7 +215,7 @@ export class BaseDocument {
 
     // 6. After save hooks
     await this.after_save();
-    this.events.emit('after_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_save' });
+    await this.events.emitAsync('after_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_save' });
 
     return this;
   }
@@ -246,10 +246,10 @@ export class BaseDocument {
 
     // Lifecycle hooks
     await this.validate();
-    this.events.emit('validate', { doctype: this.doctype, name: this.data.name, doc: this, event: 'validate' });
+    await this.events.emitAsync('validate', { doctype: this.doctype, name: this.data.name, doc: this, event: 'validate' });
 
     await this.before_save();
-    this.events.emit('before_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_save' });
+    await this.events.emitAsync('before_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_save' });
 
     const tableName = `tab${this.doctype}`;
     const { mainRow, childRowsByField } = this.separateChildTables();
@@ -290,7 +290,7 @@ export class BaseDocument {
     });
 
     await this.after_save();
-    this.events.emit('after_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_save' });
+    await this.events.emitAsync('after_save', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_save' });
 
     return this;
   }
@@ -308,7 +308,7 @@ export class BaseDocument {
     }
 
     await this.before_submit();
-    this.events.emit('before_submit', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_submit' });
+    await this.events.emitAsync('before_submit', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_submit' });
 
     this.data.docstatus = 1;
     this.data.modified = new Date().toISOString();
@@ -332,7 +332,7 @@ export class BaseDocument {
     });
 
     await this.on_submit();
-    this.events.emit('on_submit', { doctype: this.doctype, name: this.data.name, doc: this, event: 'on_submit' });
+    await this.events.emitAsync('on_submit', { doctype: this.doctype, name: this.data.name, doc: this, event: 'on_submit' });
 
     return this;
   }
@@ -346,7 +346,7 @@ export class BaseDocument {
     }
 
     await this.before_cancel();
-    this.events.emit('before_cancel', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_cancel' });
+    await this.events.emitAsync('before_cancel', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_cancel' });
 
     this.data.docstatus = 2;
     this.data.modified = new Date().toISOString();
@@ -370,7 +370,7 @@ export class BaseDocument {
     });
 
     await this.on_cancel();
-    this.events.emit('on_cancel', { doctype: this.doctype, name: this.data.name, doc: this, event: 'on_cancel' });
+    await this.events.emitAsync('on_cancel', { doctype: this.doctype, name: this.data.name, doc: this, event: 'on_cancel' });
 
     return this;
   }
@@ -384,7 +384,7 @@ export class BaseDocument {
     }
 
     await this.before_delete();
-    this.events.emit('before_delete', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_delete' });
+    await this.events.emitAsync('before_delete', { doctype: this.doctype, name: this.data.name, doc: this, event: 'before_delete' });
 
     const tableName = `tab${this.doctype}`;
     await this.db.transaction(async (trx) => {
@@ -401,7 +401,7 @@ export class BaseDocument {
     });
 
     await this.after_delete();
-    this.events.emit('after_delete', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_delete' });
+    await this.events.emitAsync('after_delete', { doctype: this.doctype, name: this.data.name, doc: this, event: 'after_delete' });
   }
 
   /**

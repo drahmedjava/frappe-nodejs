@@ -1,0 +1,31 @@
+{
+  "name": "WorkflowTransition",
+  "module": "Core",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "state",
+      "label": "State",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "action",
+      "label": "Action",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "next_state",
+      "label": "Next State",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "allowed_role",
+      "label": "Allowed Role",
+      "fieldtype": "Data",
+      "reqd": true
+    }
+  ]
+}

@@ -16,6 +16,7 @@ import { UserPermissionService } from '../auth/user-permission.service';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/types';
 import { GetListOptions } from '../document/types';
+import { WorkflowService } from '../lowcode/workflow.service';
 
 @Controller('api/resource')
 export class ResourceController {
@@ -24,6 +25,7 @@ export class ResourceController {
     private readonly docService: DocumentService,
     private readonly permissionService: PermissionService,
     private readonly userPermissionService: UserPermissionService,
+    private readonly workflowService: WorkflowService,
   ) {}
 
   @Get(':doctype')
@@ -193,5 +195,28 @@ export class ResourceController {
 
     await doc.delete();
     return { message: 'ok' };
+  }
+
+  @Get(':doctype/:name/transitions')
+  async getTransitions(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const doc = await this.docService.getDoc(doctype, name);
+    const transitions = await this.workflowService.getAvailableTransitions(doc, user);
+    return { data: transitions };
+  }
+
+  @Post(':doctype/:name/workflow')
+  async applyWorkflow(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @Body('action') action: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const doc = await this.docService.getDoc(doctype, name);
+    const updated = await this.workflowService.applyWorkflow(doc, action, user);
+    return { data: updated.asJson() };
   }
 }

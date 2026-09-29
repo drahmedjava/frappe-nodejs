@@ -8,6 +8,7 @@ import { DocumentModule } from './document/document.module';
 import { AuthModule } from './auth/auth.module';
 import { ApiModule } from './api/api.module';
 import { AsyncModule } from './async/async.module';
+import { LowCodeModule } from './lowcode/lowcode.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { AppController } from './app.controller';
     AuthModule,
     ApiModule,
     AsyncModule,
+    LowCodeModule,
   ],
   controllers: [AppController],
   providers: [],

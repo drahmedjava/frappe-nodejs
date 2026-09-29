@@ -1,0 +1,60 @@
+{
+  "name": "ServerScript",
+  "module": "Core",
+  "namingRule": "series",
+  "autoname": "SCRIPT-.#####",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "script_type",
+      "label": "Script Type",
+      "fieldtype": "Select",
+      "options": ["DocType Event", "API"],
+      "default": "DocType Event",
+      "reqd": true
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "doctype_event",
+      "label": "DocType Event",
+      "fieldtype": "Select",
+      "options": ["before_insert", "validate", "before_save", "after_save", "before_delete", "after_delete"]
+    },
+    {
+      "fieldname": "api_method",
+      "label": "API Method",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "script",
+      "label": "Script",
+      "fieldtype": "Code",
+      "reqd": true
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}
