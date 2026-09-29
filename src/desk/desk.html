@@ -25,13 +25,51 @@
     body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
     /* Sidebar */
-    .sidebar { width: 240px; background: var(--card-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-    .brand { padding: 18px 20px; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+    .sidebar { width: 250px; min-width: 250px; background: var(--card-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .brand { padding: 16px 18px; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .brand-left { display: flex; align-items: center; gap: 8px; }
     .brand span { color: var(--accent); }
-    .doctype-list { list-style: none; padding: 12px; overflow-y: auto; flex: 1; }
-    .doctype-item { padding: 10px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; transition: background 0.15s; }
+    .sidebar-search-box { padding: 10px 14px; border-bottom: 1px solid var(--border); background: #fdfdfd; }
+    .sidebar-search-input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; }
+    .sidebar-search-input:focus { border-color: var(--accent); }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 10px 8px; display: flex; flex-direction: column; gap: 10px; }
+    .sidebar-section { display: flex; flex-direction: column; }
+    .sidebar-section-title { font-size: 0.72rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); padding: 6px 10px 4px 10px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.05em; user-select: none; }
+    .sidebar-add-btn { background: #f1f5f9; border: 1px solid var(--border); font-size: 0.85rem; cursor: pointer; color: var(--accent); width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-weight: 700; }
+    .sidebar-add-btn:hover { background: var(--accent-light); }
+    .sidebar-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-item { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; transition: all 0.15s; color: var(--text); }
+    .sidebar-item:hover { background: #f1f5f9; color: var(--accent); }
+    .sidebar-item.active { background: #eff6ff; font-weight: 600; color: var(--accent); }
+    .sidebar-item-left { display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-item-icon { font-size: 1rem; width: 18px; text-align: center; }
+    .sidebar-item-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .sidebar-child-list { list-style: none; padding-left: 20px; display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+    .doctype-list { list-style: none; padding: 0; }
+    .doctype-item { padding: 7px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; transition: background 0.15s; }
     .doctype-item:hover, .doctype-item.active { background: #f1f5f9; font-weight: 600; color: var(--accent); }
-    .status-badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: var(--text-muted); }
+    .status-badge { font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: var(--text-muted); }
+
+    /* Workspace Dashboard Page */
+    .workspace-page { display: flex; flex-direction: column; gap: 24px; max-width: 1000px; margin: 0 auto; }
+    .workspace-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .workspace-header-left { display: flex; align-items: center; gap: 14px; }
+    .workspace-header-icon { font-size: 2.2rem; background: #eff6ff; width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .workspace-header-title { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .workspace-header-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+    .shortcuts-section { display: flex; flex-direction: column; gap: 12px; }
+    .shortcuts-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .shortcuts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .shortcut-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.15s; }
+    .shortcut-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+    .shortcut-card-left { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.875rem; }
+    .cards-grid-section { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .links-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+    .links-card-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .links-card-items { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .links-card-item { font-size: 0.875rem; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color 0.15s; }
+    .links-card-item:hover { color: var(--accent); font-weight: 500; }
+
 
     /* Main view */
     .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -123,11 +161,47 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="brand">⚡ Frappe <span>NodeJS</span></div>
-    <ul class="doctype-list" id="doctypeList">
-      <li class="doctype-item">Loading DocTypes...</li>
-    </ul>
+    <div class="brand">
+      <div class="brand-left">⚡ Frappe <span>NodeJS</span></div>
+    </div>
+    <div class="sidebar-search-box">
+      <input type="text" class="sidebar-search-input" id="sidebarSearch" placeholder="Search Workspaces & Docs..." oninput="filterSidebar(this.value)">
+    </div>
+    <div class="sidebar-content">
+      <!-- My Workspaces (Private) -->
+      <div class="sidebar-section" id="myWorkspacesSection">
+        <div class="sidebar-section-title">
+          <span>My Workspaces</span>
+          <button class="sidebar-add-btn" onclick="openNewWorkspaceModal()" title="Add Private Workspace">+</button>
+        </div>
+        <ul class="sidebar-list" id="myWorkspacesList">
+          <li class="sidebar-item" style="color:var(--text-muted); font-size:0.8rem;">No private workspaces</li>
+        </ul>
+      </div>
+
+      <!-- Public Workspaces -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <span>Workspaces</span>
+        </div>
+        <ul class="sidebar-list" id="publicWorkspacesList">
+          <li class="sidebar-item" style="color:var(--text-muted); font-size:0.8rem;">Loading...</li>
+        </ul>
+      </div>
+
+      <!-- Raw DocTypes Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title" style="cursor:pointer;" onclick="toggleDoctypes()">
+          <span>All DocTypes</span>
+          <span id="dtChevron">▾</span>
+        </div>
+        <ul class="doctype-list" id="doctypeList" style="display:none;">
+          <li class="doctype-item">Loading DocTypes...</li>
+        </ul>
+      </div>
+    </div>
   </aside>
+
 
   <!-- Main Container -->
   <main class="main">
@@ -153,6 +227,36 @@
     </div>
   </main>
 
+  <!-- New Workspace Modal -->
+  <div class="modal-backdrop" id="newWorkspaceModal" style="display:none;">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:1.1rem; font-weight:700;">Create Workspace</h3>
+        <button class="btn btn-secondary" onclick="closeNewWorkspaceModal()" style="padding:4px 8px;">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Workspace Title</label>
+        <input type="text" class="form-control" id="newWorkspaceTitle" placeholder="e.g. Projects, Operations">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Icon (Emoji or name)</label>
+        <input type="text" class="form-control" id="newWorkspaceIcon" value="📁" placeholder="e.g. 📁, 🚀, 📊">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="text" class="form-control" id="newWorkspaceCategory" value="Modules">
+      </div>
+      <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
+        <input type="checkbox" id="newWorkspacePublic">
+        <label class="form-label" for="newWorkspacePublic" style="margin-bottom:0;">Public (Visible to all authorized users)</label>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button class="btn btn-secondary" onclick="closeNewWorkspaceModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateWorkspace()">Create Workspace</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentDocType = 'Task';
     let currentDocName = null;
@@ -161,6 +265,8 @@
     let availableViewsInfo = null;
     let activeKanbanBoard = null;
     let socket = null;
+    let currentWorkspace = null;
+    let workspaceDataCache = {};
 
     // Socket.IO live sync
     try {
@@ -183,22 +289,271 @@
     }
 
     async function init() {
-      const res = await fetch('/api/method/frappe.get_doctypes');
-      const json = await res.json();
-      const doctypes = json.message || [];
+      await loadSidebar();
 
-      const listEl = document.getElementById('doctypeList');
-      listEl.innerHTML = '';
+      // Also populate the All DocTypes accordion
+      try {
+        const res = await fetch('/api/method/frappe.get_doctypes');
+        const json = await res.json();
+        const doctypes = json.message || [];
 
-      doctypes.forEach(dt => {
+        const listEl = document.getElementById('doctypeList');
+        listEl.innerHTML = '';
+
+        doctypes.forEach(dt => {
+          const li = document.createElement('li');
+          li.className = `doctype-item ${dt.name === currentDocType ? 'active' : ''}`;
+          li.innerHTML = `<span>${dt.name}</span> <span class="status-badge">${dt.module || 'Core'}</span>`;
+          li.onclick = () => selectDocType(dt.name);
+          listEl.appendChild(li);
+        });
+      } catch (err) {
+        console.warn('Could not load DocTypes:', err);
+      }
+    }
+
+    async function loadSidebar() {
+      try {
+        const res = await fetch('/api/method/frappe.desk.desktop.get_workspace_sidebar_items');
+        const json = await res.json();
+        const data = json.message || { my_workspaces: [], public_workspaces: [], all: [] };
+
+        renderWorkspaceList('myWorkspacesList', data.my_workspaces, true);
+        renderWorkspaceList('publicWorkspacesList', data.public_workspaces, false);
+
+        // Cache all workspaces
+        (data.all || []).forEach(w => {
+          workspaceDataCache[w.title] = w;
+          workspaceDataCache[w.name] = w;
+        });
+
+        // Default: Open Home workspace if none selected
+        if (!currentWorkspace && data.public_workspaces.length > 0) {
+          const defaultWs = data.public_workspaces.find(w => w.title === 'Home') || data.public_workspaces[0];
+          selectWorkspace(defaultWs.title);
+        }
+      } catch (err) {
+        console.error('Failed to load workspaces:', err);
+      }
+    }
+
+    function renderWorkspaceList(containerId, items, isPrivate) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        container.innerHTML = `<li class="sidebar-item" style="color:var(--text-muted); font-size:0.8rem; cursor:default;">${isPrivate ? 'No private workspaces' : 'No workspaces'}</li>`;
+        return;
+      }
+
+      items.forEach(ws => {
         const li = document.createElement('li');
-        li.className = `doctype-item ${dt.name === currentDocType ? 'active' : ''}`;
-        li.innerHTML = `<span>${dt.name}</span> <span class="status-badge">${dt.module || 'Core'}</span>`;
-        li.onclick = () => selectDocType(dt.name);
-        listEl.appendChild(li);
-      });
+        li.className = `sidebar-item ${currentWorkspace === ws.title ? 'active' : ''}`;
+        li.dataset.title = ws.title.toLowerCase();
+        li.innerHTML = `
+          <div class="sidebar-item-left">
+            <span class="sidebar-item-icon">${ws.icon || '📁'}</span>
+            <span>${ws.label || ws.title}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${ws.children && ws.children.length > 0 ? `<span style="font-size:0.75rem; color:var(--text-muted);">(${ws.children.length})</span>` : ''}
+            <span class="sidebar-item-dot" style="background:${ws.indicator_color || '#3b82f6'};"></span>
+          </div>
+        `;
+        li.onclick = (e) => {
+          e.stopPropagation();
+          selectWorkspace(ws.title);
+        };
+        container.appendChild(li);
 
-      selectDocType(currentDocType);
+        if (ws.children && ws.children.length > 0) {
+          const childUl = document.createElement('ul');
+          childUl.className = 'sidebar-child-list';
+          ws.children.forEach(child => {
+            const childLi = document.createElement('li');
+            childLi.className = `sidebar-item ${currentWorkspace === child.title ? 'active' : ''}`;
+            childLi.dataset.title = child.title.toLowerCase();
+            childLi.innerHTML = `
+              <div class="sidebar-item-left">
+                <span class="sidebar-item-icon">${child.icon || '📄'}</span>
+                <span>${child.label || child.title}</span>
+              </div>
+            `;
+            childLi.onclick = (e) => {
+              e.stopPropagation();
+              selectWorkspace(child.title);
+            };
+            childUl.appendChild(childLi);
+          });
+          container.appendChild(childUl);
+        }
+      });
+    }
+
+    async function selectWorkspace(workspaceTitle) {
+      currentWorkspace = workspaceTitle;
+      currentDocName = null;
+
+      // Update active highlight in sidebar
+      document.querySelectorAll('.sidebar-item').forEach(el => {
+        el.classList.toggle('active', el.innerText.includes(workspaceTitle));
+      });
+      document.querySelectorAll('.doctype-item').forEach(el => el.classList.remove('active'));
+
+      // Update Breadcrumbs & hide view switcher tabs on workspace dashboard
+      document.getElementById('breadcrumbs').innerHTML = `<span>Desk</span> / <span style="color:var(--text);">${workspaceTitle}</span>`;
+      document.getElementById('viewSwitcher').style.display = 'none';
+
+      let ws = workspaceDataCache[workspaceTitle];
+      if (!ws) {
+        try {
+          const res = await fetch(`/api/method/frappe.desk.desktop.get_workspace?name=${encodeURIComponent(workspaceTitle)}`);
+          const json = await res.json();
+          ws = json.message;
+        } catch (e) {
+          console.warn('Could not fetch workspace doc:', e);
+        }
+      }
+
+      renderWorkspacePage(ws || { title: workspaceTitle, icon: '📁', shortcuts: [], links: [] });
+    }
+
+    function renderWorkspacePage(ws) {
+      const contentEl = document.getElementById('mainContent');
+      const shortcuts = Array.isArray(ws.shortcuts) ? ws.shortcuts : [];
+      const links = Array.isArray(ws.links) ? ws.links : [];
+
+      let shortcutsHtml = '';
+      if (shortcuts.length > 0) {
+        shortcutsHtml = `
+          <div class="shortcuts-section">
+            <div class="shortcuts-title">⚡ Quick Shortcuts</div>
+            <div class="shortcuts-grid">
+              ${shortcuts.map(sc => `
+                <div class="shortcut-card" onclick="selectDocType('${sc.link_to || sc.label}')">
+                  <div class="shortcut-card-left">
+                    <span class="sidebar-item-dot" style="background:${sc.color || '#2563eb'};"></span>
+                    <span>${sc.label}</span>
+                  </div>
+                  <span class="status-badge">${sc.type || 'DocType'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      let linksHtml = '';
+      if (links.length > 0) {
+        linksHtml = `
+          <div class="cards-grid-section">
+            ${links.map(card => `
+              <div class="links-card">
+                <div class="links-card-title">${card.label || 'Documents'}</div>
+                <ul class="links-card-items">
+                  ${(card.items || []).map(item => `
+                    <li class="links-card-item" onclick="selectDocType('${item.link_to || item.label}')">
+                      <span>›</span>
+                      <span>${item.label}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      contentEl.innerHTML = `
+        <div class="workspace-page">
+          <div class="workspace-header">
+            <div class="workspace-header-left">
+              <div class="workspace-header-icon">${ws.icon || '📁'}</div>
+              <div>
+                <div class="workspace-header-title">${ws.label || ws.title}</div>
+                <div class="workspace-header-desc">Module: ${ws.module || 'Core'} · Category: ${ws.category || 'Modules'} ${ws.public ? '· Public Workspace' : '· Private (My Workspace)'}</div>
+              </div>
+            </div>
+            <button class="btn btn-secondary" onclick="openNewWorkspaceModal()">+ New Workspace</button>
+          </div>
+          ${shortcutsHtml}
+          ${linksHtml}
+        </div>
+      `;
+    }
+
+    function filterSidebar(query) {
+      const q = (query || '').toLowerCase().trim();
+      document.querySelectorAll('.sidebar-list .sidebar-item').forEach(el => {
+        if (!q) {
+          el.style.display = 'flex';
+        } else {
+          const match = el.innerText.toLowerCase().includes(q);
+          el.style.display = match ? 'flex' : 'none';
+        }
+      });
+      document.querySelectorAll('.doctype-list .doctype-item').forEach(el => {
+        if (!q) {
+          el.style.display = 'flex';
+        } else {
+          const match = el.innerText.toLowerCase().includes(q);
+          el.style.display = match ? 'flex' : 'none';
+        }
+      });
+    }
+
+    function toggleDoctypes() {
+      const el = document.getElementById('doctypeList');
+      const ch = document.getElementById('dtChevron');
+      const isHidden = el.style.display === 'none';
+      el.style.display = isHidden ? 'block' : 'none';
+      ch.innerText = isHidden ? '▴' : '▾';
+    }
+
+    function openNewWorkspaceModal() {
+      document.getElementById('newWorkspaceModal').style.display = 'flex';
+    }
+    function closeNewWorkspaceModal() {
+      document.getElementById('newWorkspaceModal').style.display = 'none';
+    }
+
+    async function submitCreateWorkspace() {
+      const title = document.getElementById('newWorkspaceTitle').value.trim();
+      const icon = document.getElementById('newWorkspaceIcon').value.trim() || '📁';
+      const category = document.getElementById('newWorkspaceCategory').value.trim() || 'Modules';
+      const isPublic = document.getElementById('newWorkspacePublic').checked;
+
+      if (!title) {
+        alert('Please enter a workspace title');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/method/frappe.desk.desktop.save_workspace', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            label: title,
+            icon,
+            category,
+            public: isPublic,
+            shortcuts: JSON.stringify([{ label: 'Tasks', type: 'DocType', link_to: 'Task' }]),
+          }),
+        });
+
+        const json = await res.json();
+        if (json.message) {
+          closeNewWorkspaceModal();
+          await loadSidebar();
+          selectWorkspace(title);
+        } else {
+          alert('Failed to create workspace: ' + (json.exc || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error creating workspace: ' + err.message);
+      }
     }
 
     async function selectDocType(doctype) {
@@ -206,9 +561,19 @@
       currentDocName = null;
       activeKanbanBoard = null;
 
+      // Update sidebar active state
+      document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.doctype-item').forEach(el => {
         el.classList.toggle('active', el.innerText.includes(doctype));
       });
+
+      // Update Breadcrumbs
+      const wsName = currentWorkspace || 'Home';
+      document.getElementById('breadcrumbs').innerHTML = `
+        <span>Desk</span> / 
+        <span onclick="selectWorkspace('${wsName}')" style="cursor:pointer; color:var(--accent);">${wsName}</span> / 
+        <span style="color:var(--text);">${doctype}</span>
+      `;
 
       if (socket) socket.emit('subscribe_doctype', currentDocType);
 
@@ -219,6 +584,7 @@
 
       // Load default list view
       switchView('List');
+
     }
 
     function switchView(viewName) {

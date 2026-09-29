@@ -1,23 +1,19 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { RealtimeService } from './async/realtime.service';
 import { SchemaSyncService } from './meta/schema-sync.service';
 import { DocumentService } from './document/document.service';
 import { DatabaseService } from './database/database.service';
 
-async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+async function migrate() {
+  const logger = new Logger('Migrate');
+  logger.log('Starting Frappe database migration...');
+  const app = await NestFactory.createApplicationContext(AppModule, { logger: ['log', 'warn', 'error'] });
 
-  // Enable CORS similar to Frappe
-  app.enableCors();
-
-  // Auto-sync schema and seed default Administrator on startup
   const syncService = app.get(SchemaSyncService);
   await syncService.syncAll();
+  logger.log('All DocType schemas synchronized successfully.');
 
   const docService = app.get(DocumentService);
   const db = app.get(DatabaseService);
@@ -33,21 +29,25 @@ async function bootstrap() {
         roles: [{ role: 'System Manager' }, { role: 'All' }],
       });
       await adminDoc.insert('Administrator');
-      logger.log('Seeded default Administrator user');
+      logger.log('Seeded default Administrator user.');
     }
   }
 
-  const configService = app.get(ConfigService);
-  const port = configService.get<number>('port') || 3000;
+  try {
+    const { WorkspaceService } = await import('./desk/workspace.service');
+    const wsService = app.get(WorkspaceService);
+    await wsService.ensureDefaultWorkspaces();
+    logger.log('Default workspaces verified/seeded.');
+  } catch (err: any) {
+    logger.warn(`Could not seed workspaces: ${err.message}`);
+  }
 
-  const server = await app.listen(port);
-  const realtimeService = app.get(RealtimeService);
-  realtimeService.attach(app.getHttpServer());
+  await app.close();
 
-  logger.log(`Frappe Node.js backend listening on http://localhost:${port}`);
+  logger.log('Migration completed successfully.');
 }
 
-bootstrap().catch((err) => {
-  console.error('Fatal error during bootstrap:', err);
+migrate().catch((err) => {
+  console.error('Migration failed:', err);
   process.exit(1);
 });

@@ -1,4 +1,4 @@
-import { Module, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Module, OnModuleInit, NotFoundException, Optional } from '@nestjs/common';
 import { DiscoveryModule, DiscoveryService } from '@nestjs/core';
 import { ResourceController } from './resource.controller';
 import { MethodController } from './method.controller';
@@ -13,9 +13,11 @@ import { DataImportExportService } from '../peripheral/data-import-export.servic
 import { SiteManagerService } from '../tenant/site-manager.service';
 import { SiteContextService } from '../tenant/site-context.service';
 import { ViewService } from './view.service';
+import { DeskModule } from '../desk/desk.module';
+import { WorkspaceService } from '../desk/workspace.service';
 
 @Module({
-  imports: [PeripheralModule, DiscoveryModule],
+  imports: [PeripheralModule, DiscoveryModule, DeskModule],
   controllers: [ResourceController, MethodController],
   providers: [MethodRegistryService, ViewService],
   exports: [MethodRegistryService, ViewService],
@@ -33,7 +35,9 @@ export class ApiModule implements OnModuleInit {
     private readonly discoveryService: DiscoveryService,
     private readonly docEvents: DocumentEventsService,
     private readonly viewService: ViewService,
+    @Optional() private readonly workspaceService?: WorkspaceService,
   ) {}
+
 
   onModuleInit() {
     // 1. Auto-discover all @Whitelist() and @OnDocEvent() decorated methods across providers & controllers
@@ -281,5 +285,67 @@ export class ApiModule implements OnModuleInit {
       async (params) => this.viewService.getCustomHtmlBlocks(params.doctype),
       { isPublic: true },
     );
+
+    // Workspace & Sidebar Navigation Methods
+    this.methodRegistry.register(
+      'frappe.desk.desktop.get_workspace_sidebar_items',
+      async (_params, ctx) => {
+        if (!this.workspaceService) return { my_workspaces: [], public_workspaces: [], all: [] };
+        return this.workspaceService.getSidebarItems(ctx.user);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'desk.get_workspace_sidebar_items',
+      async (_params, ctx) => {
+        if (!this.workspaceService) return { my_workspaces: [], public_workspaces: [], all: [] };
+        return this.workspaceService.getSidebarItems(ctx.user);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'frappe.desk.desktop.get_workspace',
+      async (params, ctx) => {
+        if (!this.workspaceService) return null;
+        const name = params.name || params.title;
+        if (!name) throw new Error('name or title is required');
+        return this.workspaceService.getWorkspace(name, ctx.user);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'desk.get_workspace',
+      async (params, ctx) => {
+        if (!this.workspaceService) return null;
+        const name = params.name || params.title;
+        if (!name) throw new Error('name or title is required');
+        return this.workspaceService.getWorkspace(name, ctx.user);
+      },
+      { isPublic: true },
+    );
+
+    this.methodRegistry.register(
+      'frappe.desk.desktop.save_workspace',
+      async (params, ctx) => {
+        if (!this.workspaceService) return null;
+        return this.workspaceService.saveWorkspace(params, ctx.user);
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.desk.desktop.delete_workspace',
+      async (params, ctx) => {
+        if (!this.workspaceService) return false;
+        const name = params.name || params.title;
+        if (!name) throw new Error('name or title is required');
+        return this.workspaceService.deleteWorkspace(name, ctx.user);
+      },
+      { isPublic: false },
+    );
   }
 }
+

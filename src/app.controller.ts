@@ -29,6 +29,60 @@ export class AppController {
   @Post('method/frappe.migrate')
   async migrate() {
     await this.syncService.syncAll();
+
+    const knex = this.db.getKnex();
+    const hasUserTable = await knex.schema.hasTable('tabUser');
+    if (hasUserTable) {
+      const adminExists = await knex('tabUser').where({ email: 'Administrator' }).orWhere({ name: 'Administrator' }).first();
+      if (!adminExists) {
+        const now = new Date().toISOString();
+        await knex('tabUser').insert({
+          name: 'Administrator',
+          email: 'Administrator',
+          first_name: 'Administrator',
+          enabled: 1,
+          creation: now,
+          modified: now,
+          modified_by: 'Administrator',
+          owner: 'Administrator',
+          docstatus: 0,
+          idx: 0,
+        });
+
+        const hasRoleTable = await knex.schema.hasTable('tabUserRole');
+        if (hasRoleTable) {
+          await knex('tabUserRole').insert([
+            {
+              name: Math.random().toString(36).substring(2, 12),
+              creation: now,
+              modified: now,
+              modified_by: 'Administrator',
+              owner: 'Administrator',
+              docstatus: 0,
+              idx: 1,
+              parent: 'Administrator',
+              parenttype: 'User',
+              parentfield: 'roles',
+              role: 'System Manager',
+            },
+            {
+              name: Math.random().toString(36).substring(2, 12),
+              creation: now,
+              modified: now,
+              modified_by: 'Administrator',
+              owner: 'Administrator',
+              docstatus: 0,
+              idx: 2,
+              parent: 'Administrator',
+              parenttype: 'User',
+              parentfield: 'roles',
+              role: 'All',
+            },
+          ]);
+        }
+      }
+    }
+
     return { message: 'Migration completed successfully' };
   }
 

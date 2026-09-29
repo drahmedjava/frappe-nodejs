@@ -35,7 +35,7 @@ export class DeskController {
     res.send(this.getHtml());
   }
 
-  @Get('*')
+  @Get('{*path}')
   renderDeskRoute(@Res() res: Response) {
     res.setHeader('Content-Type', 'text/html');
     res.send(this.getHtml());

@@ -13,7 +13,7 @@ export class WebsiteController {
     res.status(status).send(html);
   }
 
-  @Get('*')
+  @Get('{*path}')
   async handleWebRoute(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
     const path = req.path;
     // Don't intercept app, api, or websocket routes

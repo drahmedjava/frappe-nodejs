@@ -1,0 +1,117 @@
+{
+  "name": "Workspace",
+  "module": "Desk",
+  "namingRule": "field",
+  "autoname": "field:title",
+  "titleField": "title",
+  "searchFields": ["title", "label", "module", "for_user"],
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "reqd": true,
+      "unique": true,
+      "inList": true
+    },
+    {
+      "fieldname": "label",
+      "label": "Label",
+      "fieldtype": "Data",
+      "inList": true
+    },
+    {
+      "fieldname": "icon",
+      "label": "Icon",
+      "fieldtype": "Data",
+      "default": "folder"
+    },
+    {
+      "fieldname": "indicator_color",
+      "label": "Indicator Color",
+      "fieldtype": "Data",
+      "default": "blue"
+    },
+    {
+      "fieldname": "parent_page",
+      "label": "Parent Page",
+      "fieldtype": "Link",
+      "options": "Workspace"
+    },
+    {
+      "fieldname": "category",
+      "label": "Category",
+      "fieldtype": "Data",
+      "default": "Modules"
+    },
+    {
+      "fieldname": "sequence_id",
+      "label": "Sequence ID",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "public",
+      "label": "Public",
+      "fieldtype": "Check",
+      "default": true
+    },
+    {
+      "fieldname": "for_user",
+      "label": "For User",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "is_hidden",
+      "label": "Is Hidden",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "module",
+      "label": "Module",
+      "fieldtype": "Data",
+      "default": "Core"
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "Table",
+      "options": "WorkspaceRole"
+    },
+    {
+      "fieldname": "shortcuts",
+      "label": "Shortcuts",
+      "fieldtype": "Text",
+      "description": "JSON array of quick action shortcuts"
+    },
+    {
+      "fieldname": "links",
+      "label": "Links / Cards",
+      "fieldtype": "Text",
+      "description": "JSON array of section cards and DocType links"
+    },
+    {
+      "fieldname": "content",
+      "label": "Content Blocks",
+      "fieldtype": "Text",
+      "description": "JSON representation of workspace layout blocks"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true,
+      "write": true,
+      "create": true
+    }
+  ]
+}

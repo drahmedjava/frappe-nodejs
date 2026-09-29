@@ -68,6 +68,17 @@ pnpm install
 cp .env.example .env
 ```
 
+### Database Migration
+
+Synchronize DocType schemas and seed the initial `Administrator` user:
+
+```bash
+pnpm run migrate
+```
+
+> [!NOTE]
+> The server will also automatically synchronize DocType schemas and verify the default `Administrator` on application startup (`pnpm run start:dev`). You can also trigger migrations via RPC at `POST /api/method/frappe.migrate`.
+
 ### Running
 
 ```bash
@@ -646,9 +657,23 @@ async initiatePayment(params: { amount: number; currency: string; order_id: stri
 
 ## Interactive Multi-View Desk UI
 
-The Desk UI is a single-page application served at `/app` that provides multiple views for every DocType.
+The Desk UI is a single-page application served at `/app` that provides multiple views for every DocType and a dynamic, per-user workspace navigation panel.
+
+### Dynamic Left-Side Navigation Panel (Workspaces)
+
+Frappe's left navigation panel is metadata-driven and personalized per user:
+* **`Workspace` DocType**: Backed by `tabWorkspace` and `tabWorkspaceRole` schemas, storing icons, titles, categories, ordering (`sequence_id`), and parent links (`parent_page`).
+* **Role-Based Dynamic Visibility**: Public workspaces (like *Build* and *Settings*) are restricted to users with matching roles (e.g. `System Manager`), whereas module workspaces (*Home*, *Tasks*) adapt dynamically to the user's role profile.
+* **Per-User Personalization ("My Workspaces")**: Users can create private workspaces (`public = false`, `for_user = session.user`) visible solely to themselves.
+* **Workspace Dashboard Pages**: Clicking a workspace displays quick shortcut cards (with color accents and DocType links) and grouped links cards.
+* **RPC Endpoints**:
+  * `GET /api/method/frappe.desk.desktop.get_workspace_sidebar_items`
+  * `GET /api/method/frappe.desk.desktop.get_workspace?name=Home`
+  * `POST /api/method/frappe.desk.desktop.save_workspace`
+  * `POST /api/method/frappe.desk.desktop.delete_workspace`
 
 ### Available Views
+
 
 | View | Description | How to Access |
 |---|---|---|

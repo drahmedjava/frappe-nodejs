@@ -1,0 +1,13 @@
+{
+  "name": "WorkspaceRole",
+  "module": "Desk",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "role",
+      "label": "Role",
+      "fieldtype": "Data",
+      "reqd": true
+    }
+  ]
+}
