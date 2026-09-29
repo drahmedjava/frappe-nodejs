@@ -7,6 +7,7 @@ import { MetaModule } from './meta/meta.module';
 import { DocumentModule } from './document/document.module';
 import { AuthModule } from './auth/auth.module';
 import { ApiModule } from './api/api.module';
+import { AsyncModule } from './async/async.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -21,6 +22,7 @@ import { AppController } from './app.controller';
     DocumentModule,
     AuthModule,
     ApiModule,
+    AsyncModule,
   ],
   controllers: [AppController],
   providers: [],

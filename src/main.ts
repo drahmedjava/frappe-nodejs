@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { RealtimeService } from './async/realtime.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -14,7 +15,10 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('port') || 3000;
 
-  await app.listen(port);
+  const server = await app.listen(port);
+  const realtimeService = app.get(RealtimeService);
+  realtimeService.attach(app.getHttpServer());
+
   logger.log(`Frappe Node.js backend listening on http://localhost:${port}`);
 }
 
