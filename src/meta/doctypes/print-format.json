@@ -1,0 +1,52 @@
+{
+  "name": "PrintFormat",
+  "module": "Core",
+  "namingRule": "series",
+  "autoname": "PF-.#####",
+  "fields": [
+    {
+      "fieldname": "name_format",
+      "label": "Print Format Name",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "doc_type",
+      "label": "DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "standard",
+      "label": "Is Standard",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "html",
+      "label": "HTML Template",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "css",
+      "label": "Custom CSS",
+      "fieldtype": "Code"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

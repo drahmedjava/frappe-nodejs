@@ -190,7 +190,10 @@
         <div class="table-card">
           <div class="table-toolbar">
             <input type="text" class="search-input" placeholder="Search ${doctype}..." oninput="loadListView('${doctype}', this.value)" value="${search}">
-            <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+            <div style="display:flex;gap:8px;">
+              <a href="/api/resource/${doctype}/export?format=csv" target="_blank" class="btn btn-secondary">Export CSV</a>
+              <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
+            </div>
           </div>
           <table>
             <thead>
@@ -259,7 +262,9 @@
               ${transitions.map(t => `<button class="btn btn-primary" onclick="applyWorkflowAction('${doctype}', '${name}', '${t.action}')">${t.action}</button>`).join('')}
               ${docTypeMeta.isSubmittable && docData.docstatus === 0 && !isNew ? `<button class="btn btn-success" onclick="submitDoc('${doctype}', '${name}')">Submit</button>` : ''}
               ${docTypeMeta.isSubmittable && docData.docstatus === 1 ? `<button class="btn btn-danger" onclick="cancelDoc('${doctype}', '${name}')">Cancel</button>` : ''}
-              <button class="btn btn-primary" onclick="saveDoc('${doctype}', '${name}')">Save</button>
+              ${docTypeMeta.isSubmittable && docData.docstatus === 2 ? `<button class="btn btn-secondary" onclick="amendDoc('${doctype}', '${name}')">Amend</button>` : ''}
+              ${!isNew ? `<a href="/api/resource/${doctype}/${encodeURIComponent(name)}/print" target="_blank" class="btn btn-secondary" style="text-decoration:none;">Print</a>` : ''}
+              ${docData.docstatus !== 1 && docData.docstatus !== 2 ? `<button class="btn btn-primary" onclick="saveDoc('${doctype}', '${name}')">Save</button>` : ''}
             </div>
           </div>
 
@@ -417,6 +422,19 @@
       });
       if (res.ok) loadFormView(doctype, name);
       else alert('Cancel Failed');
+    }
+
+    async function amendDoc(doctype, name) {
+      if (!confirm(`Amend cancelled document ${name}?`)) return;
+      const res = await fetch(`/api/resource/${doctype}/${encodeURIComponent(name)}/amend`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        const json = await res.json();
+        loadFormView(doctype, json.data.name);
+      } else {
+        alert('Failed to amend document');
+      }
     }
 
     // Report View

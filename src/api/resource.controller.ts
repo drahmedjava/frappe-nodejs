@@ -8,7 +8,9 @@ import {
   Query,
   Body,
   ForbiddenException,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { DocumentService } from '../document/document.service';
 import { PermissionService } from '../auth/permission.service';
@@ -17,6 +19,8 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/types';
 import { GetListOptions } from '../document/types';
 import { WorkflowService } from '../lowcode/workflow.service';
+import { PrintFormatService } from '../peripheral/print-format.service';
+import { DataImportExportService } from '../peripheral/data-import-export.service';
 
 @Controller('api/resource')
 export class ResourceController {
@@ -26,6 +30,8 @@ export class ResourceController {
     private readonly permissionService: PermissionService,
     private readonly userPermissionService: UserPermissionService,
     private readonly workflowService: WorkflowService,
+    private readonly printFormatService: PrintFormatService,
+    private readonly importExportService: DataImportExportService,
   ) {}
 
   @Get(':doctype')
@@ -96,6 +102,24 @@ export class ResourceController {
     return { data: sanitizedRows };
   }
 
+  @Get(':doctype/export')
+  async exportData(
+    @Param('doctype') doctype: string,
+    @Query('format') format: string = 'json',
+    @CurrentUser() user: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'read', user);
+
+    const exportFormat = (format?.toLowerCase() === 'csv' ? 'csv' : 'json') as 'csv' | 'json';
+    const result = await this.importExportService.exportData(doctype, exportFormat);
+
+    res.setHeader('Content-Type', result.mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    return result.data;
+  }
+
   @Get(':doctype/:name')
   async getDoc(
     @Param('doctype') doctype: string,
@@ -113,6 +137,23 @@ export class ResourceController {
 
     const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
     return { data: sanitized };
+  }
+
+  @Post(':doctype/import')
+  async importData(
+    @Param('doctype') doctype: string,
+    @Query('format') format: string = 'json',
+    @Body() body: any,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'create', user);
+
+    const importFormat = (format?.toLowerCase() === 'csv' ? 'csv' : 'json') as 'csv' | 'json';
+    const content = body.data || body.csv || body;
+    const result = await this.importExportService.importData(doctype, content, importFormat, user.user);
+
+    return { data: result };
   }
 
   @Post(':doctype')
@@ -252,5 +293,27 @@ export class ResourceController {
     const doc = await this.docService.getDoc(doctype, name);
     const versions = await doc.getVersions();
     return { data: versions };
+  }
+
+  @Get(':doctype/:name/print')
+  async printDoc(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @Query('format') format: string,
+    @CurrentUser() user: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'read', user);
+
+    const doc = await this.docService.getDoc(doctype, name);
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
+
+    const html = await this.printFormatService.render(doc, format);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return html;
   }
 }

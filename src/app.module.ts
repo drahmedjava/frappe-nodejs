@@ -10,6 +10,7 @@ import { ApiModule } from './api/api.module';
 import { AsyncModule } from './async/async.module';
 import { LowCodeModule } from './lowcode/lowcode.module';
 import { DeskModule } from './desk/desk.module';
+import { PeripheralModule } from './peripheral/peripheral.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { AppController } from './app.controller';
     AsyncModule,
     LowCodeModule,
     DeskModule,
+    PeripheralModule,
   ],
   controllers: [AppController],
   providers: [],

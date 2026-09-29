@@ -5,8 +5,12 @@ import { MethodRegistryService } from './method-registry.service';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { SchemaSyncService } from '../meta/schema-sync.service';
 import { DocumentService } from '../document/document.service';
+import { PeripheralModule } from '../peripheral/peripheral.module';
+import { PrintFormatService } from '../peripheral/print-format.service';
+import { DataImportExportService } from '../peripheral/data-import-export.service';
 
 @Module({
+  imports: [PeripheralModule],
   controllers: [ResourceController, MethodController],
   providers: [MethodRegistryService],
   exports: [MethodRegistryService],
@@ -17,6 +21,8 @@ export class ApiModule implements OnModuleInit {
     private readonly metaRegistry: DocTypeRegistryService,
     private readonly syncService: SchemaSyncService,
     private readonly docService: DocumentService,
+    private readonly printService: PrintFormatService,
+    private readonly importExportService: DataImportExportService,
   ) {}
 
   onModuleInit() {
@@ -68,6 +74,39 @@ export class ApiModule implements OnModuleInit {
       async () => {
         await this.syncService.syncAll();
         return 'Migration completed successfully';
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.client.export',
+      async (params) => {
+        if (!params.doctype) throw new Error('doctype parameter is required');
+        return this.importExportService.exportData(params.doctype, params.format || 'json', params);
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.client.import',
+      async (params, ctx) => {
+        if (!params.doctype) throw new Error('doctype parameter is required');
+        return this.importExportService.importData(
+          params.doctype,
+          params.data || params.csv,
+          params.format || 'json',
+          ctx.user.user,
+        );
+      },
+      { isPublic: false },
+    );
+
+    this.methodRegistry.register(
+      'frappe.client.get_print_html',
+      async (params) => {
+        if (!params.doctype || !params.name) throw new Error('doctype and name are required');
+        const doc = await this.docService.getDoc(params.doctype, params.name);
+        return this.printService.render(doc, params.format);
       },
       { isPublic: false },
     );
