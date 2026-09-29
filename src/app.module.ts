@@ -13,6 +13,8 @@ import { DeskModule } from './desk/desk.module';
 import { PeripheralModule } from './peripheral/peripheral.module';
 import { TenantModule } from './tenant/tenant.module';
 import { WebsiteModule } from './website/website.module';
+import { CoreModule } from './core/core.module';
+import { TaskModule } from './modules/task/task.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -33,6 +35,8 @@ import { AppController } from './app.controller';
     DeskModule,
     PeripheralModule,
     WebsiteModule,
+    CoreModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [],

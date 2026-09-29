@@ -14,6 +14,9 @@ export { ServerScriptService } from './lowcode/server-script.service';
 export { ViewService, CreateKanbanOptions, CreateCustomViewOptions, CalendarOptions } from './api/view.service';
 export { WebsiteService, WebsiteSettingsData, WebPageData } from './website/website.service';
 export { WebsiteModule } from './website/website.module';
+export { FrappeFeatureService, FrappeFeatureOptions, FeatureViewsConfig, KanbanBoardConfig, CustomViewConfig, CustomHtmlBlockConfig } from './core/frappe-feature.service';
+export { CoreModule } from './core/core.module';
+export { TaskModule } from './modules/task/task.module';
 
 // Meta & Schema Exports
 export { DocTypeRegistryService } from './meta/doctype-registry.service';
