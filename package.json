@@ -5,7 +5,7 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/meta/doctypes', 'dist/meta/doctypes', { recursive: true, errorOnExist: false })\"",
     "start": "node dist/main.js",
     "start:dev": "tsx watch src/main.ts",
     "test": "vitest run",

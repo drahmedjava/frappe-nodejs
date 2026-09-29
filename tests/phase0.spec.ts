@@ -7,6 +7,7 @@ import { DatabaseModule } from '../src/database/database.module';
 import { DatabaseService } from '../src/database/database.service';
 import { RedisModule } from '../src/redis/redis.module';
 import { RedisService } from '../src/redis/redis.service';
+import { MetaModule } from '../src/meta/meta.module';
 import { AppController } from '../src/app.controller';
 
 describe('Phase 0 Foundation Tests', () => {
@@ -29,6 +30,7 @@ describe('Phase 0 Foundation Tests', () => {
         }),
         DatabaseModule,
         RedisModule,
+        MetaModule,
       ],
       controllers: [AppController],
     }).compile();

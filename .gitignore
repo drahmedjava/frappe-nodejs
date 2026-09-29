@@ -6,5 +6,7 @@ dist/
 sites/**/site_config.json
 *.sqlite
 *.sqlite3
+*.db
+sites/
 coverage/
 .DS_Store

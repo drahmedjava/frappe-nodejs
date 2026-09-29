@@ -1,0 +1,19 @@
+{
+  "name": "TaskItem",
+  "module": "Projects",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "item_name",
+      "label": "Item Name",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "completed",
+      "label": "Completed",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ]
+}

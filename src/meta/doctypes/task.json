@@ -1,0 +1,82 @@
+{
+  "name": "Task",
+  "module": "Projects",
+  "namingRule": "series",
+  "autoname": "TASK-.#####",
+  "titleField": "title",
+  "searchFields": ["title", "status", "assigned_to"],
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": ["Open", "Working", "Pending Review", "Completed", "Cancelled"],
+      "default": "Open",
+      "inList": true,
+      "inFilter": true
+    },
+    {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Select",
+      "options": ["Low", "Medium", "High", "Urgent"],
+      "default": "Medium",
+      "inList": true,
+      "inFilter": true
+    },
+    {
+      "fieldname": "due_date",
+      "label": "Due Date",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "progress",
+      "label": "Progress",
+      "fieldtype": "Int",
+      "default": 0
+    },
+    {
+      "fieldname": "is_completed",
+      "label": "Is Completed",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "assigned_to",
+      "label": "Assigned To",
+      "fieldtype": "Link",
+      "options": "User"
+    },
+    {
+      "fieldname": "items",
+      "label": "Task Items",
+      "fieldtype": "Table",
+      "options": "TaskItem"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}
