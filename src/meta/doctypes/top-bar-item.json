@@ -1,0 +1,25 @@
+{
+  "name": "TopBarItem",
+  "module": "Website",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "label",
+      "label": "Label",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "url",
+      "label": "URL",
+      "fieldtype": "Data",
+      "reqd": true
+    },
+    {
+      "fieldname": "open_in_new_tab",
+      "label": "Open in New Tab",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ]
+}

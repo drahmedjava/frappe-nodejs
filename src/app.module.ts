@@ -12,6 +12,7 @@ import { LowCodeModule } from './lowcode/lowcode.module';
 import { DeskModule } from './desk/desk.module';
 import { PeripheralModule } from './peripheral/peripheral.module';
 import { TenantModule } from './tenant/tenant.module';
+import { WebsiteModule } from './website/website.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -31,6 +32,7 @@ import { AppController } from './app.controller';
     LowCodeModule,
     DeskModule,
     PeripheralModule,
+    WebsiteModule,
   ],
   controllers: [AppController],
   providers: [],

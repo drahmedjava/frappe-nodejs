@@ -10,6 +10,7 @@ export interface CreateKanbanOptions {
   columns?: string[];
   filters?: Record<string, any>;
   private?: boolean;
+  card_template?: string;
 }
 
 export interface CreateCustomViewOptions {
@@ -23,6 +24,8 @@ export interface CreateCustomViewOptions {
   settings?: Record<string, any>;
   is_default?: boolean;
   is_private?: boolean;
+  card_template?: string;
+  row_template?: string;
 }
 
 export interface CalendarOptions {
@@ -109,6 +112,8 @@ export class ViewService {
       }));
     }
 
+    const customHtmlBlocks = await this.getCustomHtmlBlocks(doctype);
+
     return {
       doctype,
       available_views: availableViews,
@@ -117,7 +122,19 @@ export class ViewService {
       title_field: titleField,
       kanban_boards: kanbanBoards,
       custom_views: customViews,
+      custom_html_blocks: customHtmlBlocks,
     };
+  }
+
+  /**
+   * Retrieves active Custom HTML Blocks, optionally filtered by reference DocType.
+   */
+  async getCustomHtmlBlocks(doctype?: string): Promise<any[]> {
+    const hasTable = await this.db.hasTable('tabCustomHTMLBlock');
+    if (!hasTable) return [];
+    const filters: Record<string, any> = { is_active: 1 };
+    if (doctype) filters.reference_doctype = doctype;
+    return this.docService.getList('CustomHTMLBlock', { filters });
   }
 
   /**
@@ -154,6 +171,7 @@ export class ViewService {
       filters: options.filters ? JSON.stringify(options.filters) : undefined,
       private: options.private ? 1 : 0,
       show_labels: 1,
+      card_template: options.card_template,
     });
 
     await board.insert();
@@ -258,6 +276,8 @@ export class ViewService {
       settings: options.settings ? JSON.stringify(options.settings) : undefined,
       is_default: options.is_default ? 1 : 0,
       is_private: options.is_private ? 1 : 0,
+      card_template: options.card_template,
+      row_template: options.row_template,
     });
 
     await view.insert();

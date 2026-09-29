@@ -165,6 +165,7 @@ export class SchemaSyncService {
       case 'Small Text':
       case 'Long Text':
       case 'Code':
+      case 'HTML':
         col = table.text(fieldname);
         break;
 

@@ -12,6 +12,8 @@ export { Whitelist, WhitelistOptions } from './api/decorators/whitelist.decorato
 export { MethodRegistryService, MethodHandler, MethodOptions } from './api/method-registry.service';
 export { ServerScriptService } from './lowcode/server-script.service';
 export { ViewService, CreateKanbanOptions, CreateCustomViewOptions, CalendarOptions } from './api/view.service';
+export { WebsiteService, WebsiteSettingsData, WebPageData } from './website/website.service';
+export { WebsiteModule } from './website/website.module';
 
 // Meta & Schema Exports
 export { DocTypeRegistryService } from './meta/doctype-registry.service';

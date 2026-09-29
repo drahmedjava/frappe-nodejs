@@ -16,6 +16,13 @@ export class SiteContextService {
   }
 
   /**
+   * Alias for run(context, callback)
+   */
+  runWithSite<R>(context: SiteContext, callback: () => R): R {
+    return this.storage.run(context, callback);
+  }
+
+  /**
    * Returns current active site context, or undefined if executing outside site context.
    */
   getCurrentContext(): SiteContext | undefined {

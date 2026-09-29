@@ -1,0 +1,57 @@
+{
+  "name": "CustomHTMLBlock",
+  "module": "Desk",
+  "namingRule": "field",
+  "autoname": "block_name",
+  "fields": [
+    {
+      "fieldname": "block_name",
+      "label": "Block Name",
+      "fieldtype": "Data",
+      "reqd": true,
+      "unique": true,
+      "inList": true
+    },
+    {
+      "fieldname": "html",
+      "label": "HTML",
+      "fieldtype": "Text",
+      "reqd": true
+    },
+    {
+      "fieldname": "style",
+      "label": "CSS Style",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "script",
+      "label": "Client Script",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Reference DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "is_active",
+      "label": "Is Active",
+      "fieldtype": "Check",
+      "default": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

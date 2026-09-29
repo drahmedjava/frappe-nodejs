@@ -275,5 +275,11 @@ export class ApiModule implements OnModuleInit {
       },
       { isPublic: true },
     );
+
+    this.methodRegistry.register(
+      'frappe.views.get_custom_html_blocks',
+      async (params) => this.viewService.getCustomHtmlBlocks(params.doctype),
+      { isPublic: true },
+    );
   }
 }

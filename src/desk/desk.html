@@ -255,6 +255,24 @@
     }
 
     // -------------------------------------------------------------
+    // Custom HTML Blocks for Views
+    // -------------------------------------------------------------
+    function renderCustomHtmlBlocksHtml() {
+      const blocks = (availableViewsInfo && availableViewsInfo.custom_html_blocks) || [];
+      if (blocks.length === 0) return '';
+      return `
+        <div class="custom-html-blocks" style="margin-bottom:16px;display:flex;flex-direction:column;gap:12px;">
+          ${blocks.map(b => `
+            <div class="custom-html-block-card" id="block_${b.name}" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;">
+              ${b.style ? `<style>${b.style}</style>` : ''}
+              <div>${b.html}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
     // 1. List View
     // -------------------------------------------------------------
     async function loadListView(doctype, search = '') {
@@ -278,6 +296,7 @@
 
       const container = document.getElementById('mainContent');
       container.innerHTML = `
+        ${renderCustomHtmlBlocksHtml()}
         <div class="table-card">
           <div class="table-toolbar">
             <input type="text" class="search-input" placeholder="Search ${doctype}..." oninput="loadListView('${doctype}', this.value)" value="${search}">
@@ -373,16 +392,23 @@
                   <span class="kanban-count">${(groupedCards[col] || []).length}</span>
                 </div>
                 <div class="kanban-cards" id="col_${col.replace(/[^a-zA-Z0-9]/g, '_')}">
-                  ${(groupedCards[col] || []).map(card => `
+                  ${(groupedCards[col] || []).map(card => {
+                    const cardContent = (boardData.board && boardData.board.card_template)
+                      ? interpolateTemplate(boardData.board.card_template, card)
+                      : `
+                        <div class="kanban-card-title">${card.title || card.name}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">${card.name}</div>
+                        <div class="kanban-card-meta">
+                          <span>${card.priority || card.status || ''}</span>
+                          <span>${card.owner || ''}</span>
+                        </div>
+                      `;
+                    return `
                     <div class="kanban-card" draggable="true" ondragstart="dragCard(event, '${card.name}')" onclick="loadFormView('${doctype}', '${card.name}')">
-                      <div class="kanban-card-title">${card.title || card.name}</div>
-                      <div style="font-size:0.8rem;color:var(--text-muted);">${card.name}</div>
-                      <div class="kanban-card-meta">
-                        <span>${card.priority || card.status || ''}</span>
-                        <span>${card.owner || ''}</span>
-                      </div>
+                      ${cardContent}
                     </div>
-                  `).join('')}
+                  `;
+                  }).join('')}
                 </div>
               </div>
             `).join('')}
@@ -547,21 +573,29 @@
           <button class="btn btn-primary" onclick="loadFormView('${doctype}', null)">+ New ${doctype}</button>
         </div>
         <div class="cards-grid">
-          ${records.map(row => `
+          ${records.map(row => {
+            const customView = (availableViewsInfo && availableViewsInfo.custom_views && availableViewsInfo.custom_views.find(v => v.view_type === 'Card' && v.card_template));
+            const cardContent = customView
+              ? interpolateTemplate(customView.card_template, row)
+              : `
+                <div class="doc-card-title">${row.title || row.name}</div>
+                <div class="doc-card-body">
+                  <span><strong>ID:</strong> ${row.name}</span>
+                  ${row.status ? `<span><strong>Status:</strong> ${row.status}</span>` : ''}
+                  ${row.priority ? `<span><strong>Priority:</strong> ${row.priority}</span>` : ''}
+                  ${row.total_amount ? `<span><strong>Amount:</strong> $${row.total_amount}</span>` : ''}
+                </div>
+                <div class="doc-card-footer">
+                  <span>${row.owner || 'Admin'}</span>
+                  <span>${row.creation ? new Date(row.creation).toLocaleDateString() : ''}</span>
+                </div>
+              `;
+            return `
             <div class="doc-card" onclick="loadFormView('${doctype}', '${row.name}')">
-              <div class="doc-card-title">${row.title || row.name}</div>
-              <div class="doc-card-body">
-                <span><strong>ID:</strong> ${row.name}</span>
-                ${row.status ? `<span><strong>Status:</strong> ${row.status}</span>` : ''}
-                ${row.priority ? `<span><strong>Priority:</strong> ${row.priority}</span>` : ''}
-                ${row.total_amount ? `<span><strong>Amount:</strong> $${row.total_amount}</span>` : ''}
-              </div>
-              <div class="doc-card-footer">
-                <span>${row.owner || 'Admin'}</span>
-                <span>${row.creation ? new Date(row.creation).toLocaleDateString() : ''}</span>
-              </div>
+              ${cardContent}
             </div>
-          `).join('')}
+          `;
+          }).join('')}
         </div>
       `;
     }
@@ -656,7 +690,7 @@
           </div>
 
           <form id="docForm" class="form-grid">
-            ${regularFields.map(f => renderFieldInput(f, docData[f.fieldname])).join('')}
+            ${regularFields.map(f => renderFieldInput(f, docData[f.fieldname], docData)).join('')}
 
             ${tableFields.map(tf => `
               <div class="form-group full">
@@ -686,9 +720,35 @@
       `;
     }
 
-    function renderFieldInput(field, value) {
+    function interpolateTemplate(template, data) {
+      if (!template) return '';
+      return template.replace(/\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g, (match, key) => {
+        const parts = key.split('.');
+        let val = data;
+        for (const part of parts) {
+          if (val !== undefined && val !== null) val = val[part];
+          else return '';
+        }
+        return val !== undefined && val !== null ? String(val) : '';
+      });
+    }
+
+    function renderFieldInput(field, value, docData = {}) {
       const val = value !== undefined && value !== null ? value : (field.default || '');
-      const isFull = field.fieldtype === 'Text' || field.fieldtype === 'Code';
+      const isFull = field.fieldtype === 'Text' || field.fieldtype === 'Code' || field.fieldtype === 'HTML';
+
+      if (field.fieldtype === 'HTML') {
+        const rawHtml = val || field.options || '';
+        const rendered = interpolateTemplate(rawHtml, docData);
+        return `
+          <div class="form-group full form-html-field" id="field_html_${field.fieldname}">
+            <label class="form-label">${field.label}</label>
+            <div class="custom-html-content" style="padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+              ${rendered}
+            </div>
+          </div>
+        `;
+      }
 
       if (field.fieldtype === 'Check') {
         return `

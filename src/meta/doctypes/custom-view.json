@@ -66,6 +66,16 @@
       "label": "Private",
       "fieldtype": "Check",
       "default": false
+    },
+    {
+      "fieldname": "card_template",
+      "label": "Card Template HTML",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "row_template",
+      "label": "Row Template HTML",
+      "fieldtype": "Text"
     }
   ],
   "permissions": [

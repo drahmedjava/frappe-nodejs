@@ -1,0 +1,73 @@
+{
+  "name": "WebPage",
+  "module": "Website",
+  "namingRule": "field",
+  "autoname": "route",
+  "titleField": "title",
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "route",
+      "label": "Route",
+      "fieldtype": "Data",
+      "reqd": true,
+      "unique": true,
+      "inList": true,
+      "description": "Path without leading slash, e.g. 'home', 'about', 'pricing'"
+    },
+    {
+      "fieldname": "content_type",
+      "label": "Content Type",
+      "fieldtype": "Select",
+      "options": ["HTML", "Markdown", "Template"],
+      "default": "HTML"
+    },
+    {
+      "fieldname": "main_section",
+      "label": "Main Section (HTML Content)",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "custom_css",
+      "label": "Custom CSS",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "custom_js",
+      "label": "Custom JavaScript",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "published",
+      "label": "Published",
+      "fieldtype": "Check",
+      "default": true,
+      "inList": true
+    },
+    {
+      "fieldname": "show_sidebar",
+      "label": "Show Sidebar",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

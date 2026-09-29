@@ -1,0 +1,61 @@
+{
+  "name": "WebsiteSettings",
+  "module": "Website",
+  "fields": [
+    {
+      "fieldname": "app_name",
+      "label": "Application Name",
+      "fieldtype": "Data",
+      "default": "Frappe NodeJS"
+    },
+    {
+      "fieldname": "brand_html",
+      "label": "Brand HTML",
+      "fieldtype": "Text"
+    },
+    {
+      "fieldname": "banner_image",
+      "label": "Banner Image URL",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "favicon",
+      "label": "Favicon URL",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "copyright",
+      "label": "Copyright Text",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "custom_css",
+      "label": "Custom CSS",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "custom_js",
+      "label": "Custom JavaScript",
+      "fieldtype": "Code"
+    },
+    {
+      "fieldname": "top_bar_items",
+      "label": "Top Bar Navigation Items",
+      "fieldtype": "Table",
+      "options": "TopBarItem"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

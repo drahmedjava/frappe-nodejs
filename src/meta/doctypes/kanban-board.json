@@ -48,6 +48,12 @@
       "label": "Show Labels",
       "fieldtype": "Check",
       "default": true
+    },
+    {
+      "fieldname": "card_template",
+      "label": "Card Template HTML",
+      "fieldtype": "Text",
+      "description": "Custom HTML template for rendering cards in this board"
     }
   ],
   "permissions": [

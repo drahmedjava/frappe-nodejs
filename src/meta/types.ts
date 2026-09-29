@@ -6,6 +6,7 @@ export type FieldType =
   | 'Small Text'
   | 'Long Text'
   | 'Code'
+  | 'HTML'
   | 'Int'
   | 'Float'
   | 'Currency'
@@ -89,6 +90,7 @@ export const DocFieldSchema = z.object({
     'Small Text',
     'Long Text',
     'Code',
+    'HTML',
     'Int',
     'Float',
     'Currency',
