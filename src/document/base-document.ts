@@ -5,6 +5,8 @@ import { DocValidatorService } from '../meta/doc-validator.service';
 import { DocumentEventsService } from './document-events.service';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { SiteContextService } from '../tenant/site-context.service';
+import type { DocumentService } from './document.service';
+import type { GetListOptions } from './types';
 import * as crypto from 'crypto';
 
 export interface DocumentContext {
@@ -14,6 +16,7 @@ export interface DocumentContext {
   events: DocumentEventsService;
   registry: DocTypeRegistryService;
   siteContext?: SiteContextService;
+  docService?: DocumentService;
 }
 
 export class BaseDocument {
@@ -102,6 +105,7 @@ export class BaseDocument {
   protected validator: DocValidatorService;
   protected events: DocumentEventsService;
   protected registry: DocTypeRegistryService;
+  protected docService?: DocumentService;
 
   constructor(
     meta: DocType,
@@ -120,6 +124,7 @@ export class BaseDocument {
     this.validator = context.validator;
     this.events = context.events;
     this.registry = context.registry;
+    this.docService = context.docService;
 
     // Return a Proxy so doc.field directly reads and writes doc.data.field
     return new Proxy(this, {
@@ -150,6 +155,46 @@ export class BaseDocument {
 
   set(prop: string, value: any): void {
     this.data[prop] = value;
+  }
+
+  /**
+   * Fetches another document of any DocType with full lifecycle and permission support.
+   */
+  async getDoc<T extends BaseDocument = BaseDocument>(doctype: string, name: string): Promise<T> {
+    if (!this.docService) {
+      throw new Error('DocumentService is not available in DocumentContext');
+    }
+    return this.docService.getDoc<T>(doctype, name);
+  }
+
+  /**
+   * Creates an in-memory document of any DocType.
+   */
+  newDoc<T extends BaseDocument = BaseDocument>(doctype: string, data: Record<string, any> = {}): T {
+    if (!this.docService) {
+      throw new Error('DocumentService is not available in DocumentContext');
+    }
+    return this.docService.newDoc<T>(doctype, data);
+  }
+
+  /**
+   * Queries list of documents for any DocType with filtering, auto-scoping, and pagination.
+   */
+  async getList(doctype: string, options: GetListOptions = {}): Promise<any[]> {
+    if (!this.docService) {
+      throw new Error('DocumentService is not available in DocumentContext');
+    }
+    return this.docService.getList(doctype, options);
+  }
+
+  /**
+   * Deletes another document of any DocType.
+   */
+  async deleteDoc(doctype: string, name: string): Promise<void> {
+    if (!this.docService) {
+      throw new Error('DocumentService is not available in DocumentContext');
+    }
+    await this.docService.deleteDoc(doctype, name);
   }
 
   // Lifecycle hooks to be overridden in custom document classes

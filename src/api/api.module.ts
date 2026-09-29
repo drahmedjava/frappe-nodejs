@@ -1,4 +1,5 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { DiscoveryModule, DiscoveryService } from '@nestjs/core';
 import { ResourceController } from './resource.controller';
 import { MethodController } from './method.controller';
 import { MethodRegistryService } from './method-registry.service';
@@ -12,7 +13,7 @@ import { SiteManagerService } from '../tenant/site-manager.service';
 import { SiteContextService } from '../tenant/site-context.service';
 
 @Module({
-  imports: [PeripheralModule],
+  imports: [PeripheralModule, DiscoveryModule],
   controllers: [ResourceController, MethodController],
   providers: [MethodRegistryService],
   exports: [MethodRegistryService],
@@ -27,9 +28,46 @@ export class ApiModule implements OnModuleInit {
     private readonly importExportService: DataImportExportService,
     private readonly siteManager: SiteManagerService,
     private readonly siteContext: SiteContextService,
+    private readonly discoveryService: DiscoveryService,
   ) {}
 
   onModuleInit() {
+    // 1. Auto-discover all @Whitelist() decorated methods across providers & controllers
+    try {
+      const controllers = this.discoveryService.getControllers();
+      const providers = this.discoveryService.getProviders();
+      for (const wrapper of [...controllers, ...providers]) {
+        if (wrapper.instance) {
+          this.methodRegistry.registerInstance(wrapper.instance);
+        }
+      }
+    } catch {
+      // Ignore discovery errors in partial testing setups
+    }
+
+    // 2. Register Frappe RPC run_doc_method
+    this.methodRegistry.register(
+      'run_doc_method',
+      async (params, ctx) => {
+        const dt = params.dt || params.doctype;
+        const dn = params.dn || params.docname || params.name;
+        const method = params.method;
+        const args = params.args || params.data || {};
+
+        if (!dt || !dn || !method) {
+          throw new Error('dt (DocType), dn (name), and method parameters are required');
+        }
+
+        const doc = await this.docService.getDoc(dt, dn);
+        if (typeof (doc as any)[method] !== 'function') {
+          throw new NotFoundException(`Method "${method}" not found on document ${dt} "${dn}"`);
+        }
+
+        return (doc as any)[method](args, ctx);
+      },
+      { isPublic: false },
+    );
+
     // Register standard Frappe RPC methods
     this.methodRegistry.register('ping', () => 'pong', { isPublic: true });
     this.methodRegistry.register('frappe.ping', () => 'pong', { isPublic: true });

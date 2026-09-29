@@ -8,6 +8,7 @@ import {
   Query,
   Body,
   ForbiddenException,
+  NotFoundException,
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -279,6 +280,38 @@ export class ResourceController {
     const amended = await doc.amend(user.user);
     const sanitized = this.userPermissionService.filterPermittedFields(meta, amended.asJson(), user);
     return { data: sanitized };
+  }
+
+  @Post(':doctype/:name/:method')
+  async runDocMethod(
+    @Param('doctype') doctype: string,
+    @Param('name') name: string,
+    @Param('method') method: string,
+    @Body() body: Record<string, any>,
+    @CurrentUser() user: AuthUser,
+  ) {
+    if (['workflow', 'amend'].includes(method) || method.startsWith('_')) {
+      throw new NotFoundException(`Method "${method}" not found on document ${doctype}`);
+    }
+
+    const meta = this.registry.get(doctype);
+    this.permissionService.assertPermission(meta, 'read', user);
+
+    const doc = await this.docService.getDoc(doctype, name);
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
+
+    if (typeof (doc as any)[method] !== 'function') {
+      throw new NotFoundException(`Method "${method}" does not exist on document "${doctype}"`);
+    }
+
+    const result = await (doc as any)[method](body, { user });
+    if (result !== undefined) {
+      return { data: result };
+    }
+    return { data: doc.asJson() };
   }
 
   @Get(':doctype/:name/versions')

@@ -29,6 +29,7 @@ export class DocumentService {
       naming: this.naming,
       events: this.events,
       siteContext: this.siteContext,
+      docService: this,
     };
   }
 
