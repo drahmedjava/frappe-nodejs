@@ -1,0 +1,64 @@
+{
+  "name": "User",
+  "module": "Core",
+  "namingRule": "field",
+  "autoname": "field:email",
+  "titleField": "email",
+  "searchFields": ["email", "first_name", "last_name"],
+  "fields": [
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Data",
+      "reqd": true,
+      "unique": true,
+      "inList": true
+    },
+    {
+      "fieldname": "first_name",
+      "label": "First Name",
+      "fieldtype": "Data",
+      "inList": true
+    },
+    {
+      "fieldname": "last_name",
+      "label": "Last Name",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": true
+    },
+    {
+      "fieldname": "api_key",
+      "label": "API Key",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "api_secret",
+      "label": "API Secret",
+      "fieldtype": "Password"
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "Table",
+      "options": "UserRole"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    },
+    {
+      "role": "All",
+      "read": true
+    }
+  ]
+}

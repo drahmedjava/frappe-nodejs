@@ -15,10 +15,68 @@ export interface DocumentContext {
 }
 
 export class BaseDocument {
+  [key: string]: any;
+
   public doctype: string;
   public meta: DocType;
   public data: Record<string, any>;
   public isNew: boolean;
+
+  get name(): string {
+    return this.data?.name;
+  }
+  set name(val: string) {
+    if (!this.data) this.data = {};
+    this.data.name = val;
+  }
+
+  get docstatus(): number {
+    return this.data?.docstatus;
+  }
+  set docstatus(val: number) {
+    if (!this.data) this.data = {};
+    this.data.docstatus = val;
+  }
+
+  get creation(): string {
+    return this.data?.creation;
+  }
+  set creation(val: string) {
+    if (!this.data) this.data = {};
+    this.data.creation = val;
+  }
+
+  get modified(): string {
+    return this.data?.modified;
+  }
+  set modified(val: string) {
+    if (!this.data) this.data = {};
+    this.data.modified = val;
+  }
+
+  get owner(): string {
+    return this.data?.owner;
+  }
+  set owner(val: string) {
+    if (!this.data) this.data = {};
+    this.data.owner = val;
+  }
+
+  get modified_by(): string {
+    return this.data?.modified_by;
+  }
+  set modified_by(val: string) {
+    if (!this.data) this.data = {};
+    this.data.modified_by = val;
+  }
+
+  get idx(): number {
+    return this.data?.idx;
+  }
+  set idx(val: number) {
+    if (!this.data) this.data = {};
+    this.data.idx = val;
+  }
 
   protected db: DatabaseService;
   protected naming: NamingService;

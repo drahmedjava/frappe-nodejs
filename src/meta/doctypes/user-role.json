@@ -1,0 +1,13 @@
+{
+  "name": "UserRole",
+  "module": "Core",
+  "isChildTable": true,
+  "fields": [
+    {
+      "fieldname": "role",
+      "label": "Role",
+      "fieldtype": "Data",
+      "reqd": true
+    }
+  ]
+}

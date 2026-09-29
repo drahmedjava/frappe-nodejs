@@ -5,6 +5,8 @@ import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './redis/redis.module';
 import { MetaModule } from './meta/meta.module';
 import { DocumentModule } from './document/document.module';
+import { AuthModule } from './auth/auth.module';
+import { ApiModule } from './api/api.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -17,6 +19,8 @@ import { AppController } from './app.controller';
     RedisModule,
     MetaModule,
     DocumentModule,
+    AuthModule,
+    ApiModule,
   ],
   controllers: [AppController],
   providers: [],
