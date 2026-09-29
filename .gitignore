@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+.env
+.env.local
+sites/**/site_config.json
+*.sqlite
+*.sqlite3
+coverage/
+.DS_Store
