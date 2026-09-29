@@ -115,6 +115,12 @@ export class DocumentService {
       }
     }
 
+    if (options.whereIn) {
+      for (const [col, vals] of Object.entries(options.whereIn)) {
+        query.whereIn(col, vals);
+      }
+    }
+
     // 3. Ordering
     if (options.orderBy) {
       const [col, direction] = options.orderBy.split(/\s+/);

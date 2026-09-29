@@ -7,6 +7,7 @@ export type DocFilters = Record<string, any> | FilterTriple[];
 export interface GetListOptions {
   fields?: string[];
   filters?: DocFilters;
+  whereIn?: Record<string, any[]>;
   orderBy?: string;
   limit?: number;
   offset?: number;

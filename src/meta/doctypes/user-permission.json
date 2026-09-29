@@ -1,0 +1,51 @@
+{
+  "name": "UserPermission",
+  "module": "Core",
+  "namingRule": "hash",
+  "fields": [
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Link",
+      "options": "User",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "allow",
+      "label": "Allow DocType",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "for_value",
+      "label": "For Value",
+      "fieldtype": "Data",
+      "reqd": true,
+      "inList": true
+    },
+    {
+      "fieldname": "applicable_for",
+      "label": "Applicable For DocType",
+      "fieldtype": "Link",
+      "options": "DocType"
+    },
+    {
+      "fieldname": "is_default",
+      "label": "Is Default",
+      "fieldtype": "Check",
+      "default": false
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true,
+      "write": true,
+      "create": true,
+      "delete": true
+    }
+  ]
+}

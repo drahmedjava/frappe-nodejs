@@ -34,6 +34,7 @@ export interface DocField {
   inFilter?: boolean;
   description?: string;
   length?: number;
+  permlevel?: number;
 }
 
 export interface DocPermission {
@@ -45,6 +46,8 @@ export interface DocPermission {
   submit?: boolean;
   cancel?: boolean;
   amend?: boolean;
+  permlevel?: number;
+  if_owner?: boolean;
 }
 
 export type NamingRule = 'autoincrement' | 'hash' | 'prompt' | 'series' | 'field';
@@ -109,6 +112,7 @@ export const DocFieldSchema = z.object({
   inFilter: z.boolean().optional(),
   description: z.string().optional(),
   length: z.number().optional(),
+  permlevel: z.number().optional(),
 });
 
 export const DocPermissionSchema = z.object({
@@ -120,6 +124,8 @@ export const DocPermissionSchema = z.object({
   submit: z.boolean().optional(),
   cancel: z.boolean().optional(),
   amend: z.boolean().optional(),
+  permlevel: z.number().optional(),
+  if_owner: z.boolean().optional(),
 });
 
 export const DocTypeSchema = z.object({

@@ -7,11 +7,12 @@ import {
   Param,
   Query,
   Body,
-  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { DocumentService } from '../document/document.service';
 import { PermissionService } from '../auth/permission.service';
+import { UserPermissionService } from '../auth/user-permission.service';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/types';
 import { GetListOptions } from '../document/types';
@@ -22,6 +23,7 @@ export class ResourceController {
     private readonly registry: DocTypeRegistryService,
     private readonly docService: DocumentService,
     private readonly permissionService: PermissionService,
+    private readonly userPermissionService: UserPermissionService,
   ) {}
 
   @Get(':doctype')
@@ -48,7 +50,7 @@ export class ResourceController {
       }
     }
 
-    // Parse filters
+    // Parse user-provided filters
     if (query.filters) {
       if (typeof query.filters === 'string') {
         try {
@@ -59,6 +61,15 @@ export class ResourceController {
       } else {
         options.filters = query.filters;
       }
+    }
+
+    // Inject row-level security & user permissions
+    const { where, whereIn } = await this.userPermissionService.getPermissionFilters(meta, user);
+    if (Object.keys(where).length > 0) {
+      options.filters = { ...(typeof options.filters === 'object' && !Array.isArray(options.filters) ? options.filters : {}), ...where };
+    }
+    if (Object.keys(whereIn).length > 0) {
+      options.whereIn = { ...(options.whereIn || {}), ...whereIn };
     }
 
     // Parse ordering
@@ -78,7 +89,9 @@ export class ResourceController {
     }
 
     const rows = await this.docService.getList(doctype, options);
-    return { data: rows };
+    const sanitizedRows = rows.map((r) => this.userPermissionService.filterPermittedFields(meta, r, user));
+
+    return { data: sanitizedRows };
   }
 
   @Get(':doctype/:name')
@@ -91,7 +104,13 @@ export class ResourceController {
     this.permissionService.assertPermission(meta, 'read', user);
 
     const doc = await this.docService.getDoc(doctype, name);
-    return { data: doc.asJson() };
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
+
+    const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
+    return { data: sanitized };
   }
 
   @Post(':doctype')
@@ -107,7 +126,8 @@ export class ResourceController {
     const doc = this.docService.newDoc(doctype, data);
     await doc.insert(user.user);
 
-    return { data: doc.asJson() };
+    const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
+    return { data: sanitized };
   }
 
   @Put(':doctype/:name')
@@ -121,20 +141,26 @@ export class ResourceController {
     const data = body.data || body;
 
     const doc = await this.docService.getDoc(doctype, name);
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
 
     // Handle submit transition
     if (data.docstatus === 1 && doc.docstatus === 0) {
       this.permissionService.assertPermission(meta, 'submit', user);
       Object.assign(doc.data, data);
       await doc.submit(user.user);
-      return { data: doc.asJson() };
+      const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
+      return { data: sanitized };
     }
 
     // Handle cancel transition
     if (data.docstatus === 2 && doc.docstatus === 1) {
       this.permissionService.assertPermission(meta, 'cancel', user);
       await doc.cancel(user.user);
-      return { data: doc.asJson() };
+      const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
+      return { data: sanitized };
     }
 
     // Regular write/update
@@ -146,7 +172,8 @@ export class ResourceController {
     }
 
     await doc.save(user.user);
-    return { data: doc.asJson() };
+    const sanitized = this.userPermissionService.filterPermittedFields(meta, doc.asJson(), user);
+    return { data: sanitized };
   }
 
   @Delete(':doctype/:name')
@@ -158,7 +185,13 @@ export class ResourceController {
     const meta = this.registry.get(doctype);
     this.permissionService.assertPermission(meta, 'delete', user);
 
-    await this.docService.deleteDoc(doctype, name);
+    const doc = await this.docService.getDoc(doctype, name);
+    const hasRowAccess = await this.userPermissionService.checkDocRowPermission(meta, doc.data, user);
+    if (!hasRowAccess) {
+      throw new ForbiddenException(`Access denied to document "${name}" due to User Permissions`);
+    }
+
+    await doc.delete();
     return { message: 'ok' };
   }
 }
