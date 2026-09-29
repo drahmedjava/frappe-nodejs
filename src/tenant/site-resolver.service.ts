@@ -101,9 +101,34 @@ export class SiteResolverService {
   }
 
   /**
-   * Builds a full SiteContext (site name, directory, config, and active Knex connection pool if configured).
+   * Resolves row-level tenant identifier from headers (e.g. X-Tenant-ID, X-Frappe-Tenant-Id) or query params.
    */
-  resolveSiteContext(siteName: string): SiteContext {
+  resolveTenantId(
+    headers: Record<string, string | string[] | undefined> = {},
+    query: Record<string, any> = {},
+  ): string | undefined {
+    const headerVal =
+      headers['x-tenant-id'] ||
+      headers['X-Tenant-ID'] ||
+      headers['x-frappe-tenant-id'] ||
+      headers['X-Frappe-Tenant-Id'];
+
+    if (headerVal && typeof headerVal === 'string' && headerVal.trim()) {
+      return headerVal.trim();
+    }
+
+    const queryVal = query?.tenant_id || query?.tenantId;
+    if (queryVal && typeof queryVal === 'string' && queryVal.trim()) {
+      return queryVal.trim();
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Builds a full SiteContext (site name, tenant ID, directory, config, and active Knex connection pool if configured).
+   */
+  resolveSiteContext(siteName: string, tenantId?: string): SiteContext {
     const siteDir = this.getSitePath(siteName);
     const isConfigured = this.siteExists(siteName);
     const config = isConfigured ? this.getSiteConfig(siteName) : {};
@@ -115,6 +140,7 @@ export class SiteResolverService {
 
     return {
       site: siteName,
+      tenantId,
       siteDir,
       config,
       knex,

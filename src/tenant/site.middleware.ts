@@ -12,11 +12,17 @@ export class SiteMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const siteName = this.siteResolver.resolveSite(req.headers, req.query);
-    const context = this.siteResolver.resolveSiteContext(siteName);
+    const tenantId = this.siteResolver.resolveTenantId(req.headers, req.query);
+    const context = this.siteResolver.resolveSiteContext(siteName, tenantId);
 
-    // Set site tracking headers and request properties
+    // Set site and tenant tracking headers and request properties
     res.setHeader('X-Frappe-Site-Name', siteName);
+    if (tenantId) {
+      res.setHeader('X-Frappe-Tenant-Id', tenantId);
+    }
+
     (req as any).site = siteName;
+    (req as any).tenantId = tenantId;
     (req as any).siteContext = context;
 
     // Run the rest of the HTTP request lifecycle inside the tenant's AsyncLocalStorage context

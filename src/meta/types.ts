@@ -58,6 +58,7 @@ export interface DocType {
   isSingle?: boolean;
   isSubmittable?: boolean;
   isChildTable?: boolean;
+  isTenantScoped?: boolean;
   namingRule?: NamingRule;
   autoname?: string; // e.g. "TASK-.#####" or "field:title" or "hash"
   titleField?: string;
@@ -134,6 +135,7 @@ export const DocTypeSchema = z.object({
   isSingle: z.boolean().optional(),
   isSubmittable: z.boolean().optional(),
   isChildTable: z.boolean().optional(),
+  isTenantScoped: z.boolean().optional(),
   namingRule: z.enum(['autoincrement', 'hash', 'prompt', 'series', 'field']).optional(),
   autoname: z.string().optional(),
   titleField: z.string().optional(),

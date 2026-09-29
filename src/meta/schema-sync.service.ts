@@ -75,6 +75,11 @@ export class SchemaSyncService {
         table.string('amended_from', 140).nullable();
       }
 
+      // Per-table multi-tenant discriminator column
+      if (docType.isTenantScoped) {
+        table.string('tenant_id', 140).nullable().index();
+      }
+
       // Add DocType fields
       for (const field of docType.fields) {
         this.addColumn(table, field);
@@ -91,6 +96,13 @@ export class SchemaSyncService {
         table.string('amended_from', 140).nullable();
       });
       existingColNames.add('amended_from');
+    }
+
+    if (docType.isTenantScoped && !existingColNames.has('tenant_id')) {
+      await knex.schema.alterTable(tableName, (table) => {
+        table.string('tenant_id', 140).nullable().index();
+      });
+      existingColNames.add('tenant_id');
     }
 
     // Determine missing columns

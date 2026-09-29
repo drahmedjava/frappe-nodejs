@@ -4,6 +4,7 @@ import { NamingService } from './naming.service';
 import { DocValidatorService } from '../meta/doc-validator.service';
 import { DocumentEventsService } from './document-events.service';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
+import { SiteContextService } from '../tenant/site-context.service';
 import * as crypto from 'crypto';
 
 export interface DocumentContext {
@@ -12,6 +13,7 @@ export interface DocumentContext {
   validator: DocValidatorService;
   events: DocumentEventsService;
   registry: DocTypeRegistryService;
+  siteContext?: SiteContextService;
 }
 
 export class BaseDocument {
@@ -84,6 +86,14 @@ export class BaseDocument {
   set amended_from(val: string | undefined) {
     if (!this.data) this.data = {};
     this.data.amended_from = val;
+  }
+
+  get tenant_id(): string | undefined {
+    return this.data?.tenant_id;
+  }
+  set tenant_id(val: string | undefined) {
+    if (!this.data) this.data = {};
+    this.data.tenant_id = val;
   }
 
   protected context: DocumentContext;
@@ -176,6 +186,14 @@ export class BaseDocument {
     this.data.docstatus = 0; // Draft
     this.data.idx = this.data.idx || 0;
 
+    // Auto-stamp tenant_id for tenant-scoped DocTypes
+    if (this.meta.isTenantScoped) {
+      const activeTenant = this.context.siteContext?.getCurrentTenantId();
+      if (activeTenant) {
+        this.data.tenant_id = activeTenant;
+      }
+    }
+
     // 3. Validation & Type Coercion
     this.data = this.validator.validate(this.meta, this.data, true);
 
@@ -244,6 +262,16 @@ export class BaseDocument {
 
     if (this.data.docstatus === 2) {
       throw new Error(`Cannot edit cancelled document "${this.data.name}".`);
+    }
+
+    if (this.meta.isTenantScoped) {
+      const activeTenant = this.context.siteContext?.getCurrentTenantId();
+      if (activeTenant && this.data.tenant_id && this.data.tenant_id !== activeTenant) {
+        throw new Error(`Permission denied: Document does not belong to tenant "${activeTenant}"`);
+      }
+      if (activeTenant) {
+        this.data.tenant_id = activeTenant;
+      }
     }
 
     // Update audit fields
@@ -438,6 +466,13 @@ export class BaseDocument {
   async delete(): Promise<void> {
     if (this.data.docstatus === 1) {
       throw new Error(`Cannot delete submitted document "${this.data.name}". Cancel it first.`);
+    }
+
+    if (this.meta.isTenantScoped) {
+      const activeTenant = this.context.siteContext?.getCurrentTenantId();
+      if (activeTenant && this.data.tenant_id && this.data.tenant_id !== activeTenant) {
+        throw new Error(`Permission denied: Document does not belong to tenant "${activeTenant}"`);
+      }
     }
 
     await this.before_delete();

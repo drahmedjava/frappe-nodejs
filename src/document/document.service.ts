@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { DocTypeRegistryService } from '../meta/doctype-registry.service';
 import { DocValidatorService } from '../meta/doc-validator.service';
@@ -7,6 +7,7 @@ import { DocumentEventsService } from './document-events.service';
 import { DocumentControllerRegistry } from './document-controller.registry';
 import { BaseDocument, DocumentContext } from './base-document';
 import { GetListOptions, FilterTriple } from './types';
+import { SiteContextService } from '../tenant/site-context.service';
 
 @Injectable()
 export class DocumentService {
@@ -19,6 +20,7 @@ export class DocumentService {
     private readonly naming: NamingService,
     private readonly events: DocumentEventsService,
     private readonly controllerRegistry: DocumentControllerRegistry,
+    @Optional() private readonly siteContext?: SiteContextService,
   ) {
     this.context = {
       db: this.db,
@@ -26,6 +28,7 @@ export class DocumentService {
       validator: this.validator,
       naming: this.naming,
       events: this.events,
+      siteContext: this.siteContext,
     };
   }
 
@@ -48,6 +51,14 @@ export class DocumentService {
     const row = await this.db.table(tableName).where({ name }).first();
     if (!row) {
       throw new NotFoundException(`Document ${doctype} "${name}" not found`);
+    }
+
+    // Auto-scope check for tenant-scoped DocTypes
+    if (meta.isTenantScoped) {
+      const activeTenant = this.siteContext?.getCurrentTenantId();
+      if (activeTenant && row.tenant_id !== activeTenant) {
+        throw new NotFoundException(`Document ${doctype} "${name}" not found`);
+      }
     }
 
     // Load child tables
@@ -91,6 +102,14 @@ export class DocumentService {
       query.select(sqlFields.length > 0 ? sqlFields : ['name']);
     } else {
       query.select('*');
+    }
+
+    // Tenant-scoping filter
+    if (meta.isTenantScoped) {
+      const activeTenant = this.siteContext?.getCurrentTenantId();
+      if (activeTenant) {
+        query.where(`${tableName}.tenant_id`, activeTenant);
+      }
     }
 
     // 2. Filters

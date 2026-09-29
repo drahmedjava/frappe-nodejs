@@ -24,6 +24,7 @@ export interface SiteConfig {
 
 export interface SiteContext {
   site: string;
+  tenantId?: string;
   siteDir: string;
   config: SiteConfig;
   knex?: Knex;

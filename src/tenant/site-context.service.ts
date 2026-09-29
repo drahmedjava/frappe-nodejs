@@ -37,6 +37,13 @@ export class SiteContextService {
   }
 
   /**
+   * Returns current active per-table tenant ID, or undefined.
+   */
+  getCurrentTenantId(): string | undefined {
+    return this.storage.getStore()?.tenantId;
+  }
+
+  /**
    * Returns true if executing within a site context.
    */
   hasSiteContext(): boolean {

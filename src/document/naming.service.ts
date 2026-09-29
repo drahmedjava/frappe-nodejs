@@ -31,10 +31,12 @@ export class NamingService implements OnModuleInit {
   async generateName(docType: DocType, docData: Record<string, any>): Promise<string> {
     const autoname = docType.autoname;
 
-    // 1. Field based naming: "field:fieldname"
-    if (autoname?.startsWith('field:')) {
-      const fieldname = autoname.replace('field:', '').trim();
-      const val = docData[fieldname];
+    // 1. Field based naming: "field:fieldname" or namingRule === 'field'
+    if (autoname?.startsWith('field:') || docType.namingRule === 'field') {
+      const fieldname = autoname?.startsWith('field:')
+        ? autoname.replace('field:', '').trim()
+        : autoname?.trim();
+      const val = fieldname ? docData[fieldname] : undefined;
       if (!val) {
         throw new Error(`Cannot generate name: Field "${fieldname}" is empty`);
       }
