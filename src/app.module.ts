@@ -4,6 +4,7 @@ import { configuration } from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './redis/redis.module';
 import { MetaModule } from './meta/meta.module';
+import { DocumentModule } from './document/document.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -15,6 +16,7 @@ import { AppController } from './app.controller';
     DatabaseModule,
     RedisModule,
     MetaModule,
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [],
